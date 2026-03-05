@@ -5,7 +5,7 @@ import axios from 'axios';
 import toast from 'react-hot-toast';
 import PlayerCard from '../components/PlayerCard';
 import { useCountUp } from '../hooks/useIMScore';
-import { getLeaderboard } from '../data/staticData';
+import { getLeaderboard, playersData, inningsData } from '../data/staticData';
 
 const stagger = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.12 } } };
 const fadeUp = { hidden: { opacity: 0, y: 30 }, show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] } } };
@@ -33,6 +33,10 @@ export default function Home() {
     const [players, setPlayers] = useState([]);
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
+
+    const totalPlayers = playersData.length;
+    const totalInnings = inningsData.length;
+    const globalAvgIM = playersData.reduce((acc, p) => acc + p.im_score, 0) / (playersData.length || 1);
 
     useEffect(() => {
         toast('📊 Scores updated after IND vs AUS · Nov 24', {
@@ -101,9 +105,9 @@ export default function Home() {
                     viewport={{ once: true, margin: "-50px" }}
                     className="grid grid-cols-2 lg:grid-cols-4 gap-4"
                 >
-                    <StatCard label="Players Tracked" target={287} icon="👤" />
-                    <StatCard label="Matches Analyzed" target={1240} icon="🏏" />
-                    <StatCard label="Global Avg IM" target={51.3} icon="📊" />
+                    <StatCard label="Players Tracked" target={totalPlayers} icon="👤" />
+                    <StatCard label="Innings Analyzed" target={totalInnings} icon="🏏" />
+                    <StatCard label="Global Avg IM" target={globalAvgIM} icon="📊" />
                     <StatCard label="Predictive Accuracy" target={94} suffix="%" icon="🎯" />
                 </motion.div>
             </section>
