@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { LineChart, Line, ResponsiveContainer } from 'recharts';
 import axios from 'axios';
 import IMBadge from '../components/IMBadge';
+import { getLeaderboard } from '../data/staticData';
 import { getScoreColor, getIMLabel } from '../utils/imCalculator';
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.5 } } };
@@ -101,7 +102,7 @@ export default function Leaderboard() {
     useEffect(() => {
         axios.get('/api/leaderboard')
             .then(res => setPlayers(res.data))
-            .catch(() => { })
+            .catch(() => setPlayers(getLeaderboard()))
             .finally(() => setLoading(false));
     }, []);
 
@@ -168,8 +169,8 @@ export default function Leaderboard() {
                                 key={r.key}
                                 onClick={() => setRoleFilter(r.key)}
                                 className={`px-4 py-2 text-xs font-semibold transition-all duration-200 flex items-center gap-1.5 ${roleFilter === r.key
-                                        ? 'bg-cyan text-bg-primary shadow-md shadow-cyan/20'
-                                        : 'text-text-secondary hover:text-text-primary hover:bg-bg-card'
+                                    ? 'bg-cyan text-bg-primary shadow-md shadow-cyan/20'
+                                    : 'text-text-secondary hover:text-text-primary hover:bg-bg-card'
                                     }`}
                             >
                                 <span>{r.icon}</span> {r.label}

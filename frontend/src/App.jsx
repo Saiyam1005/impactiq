@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { HashRouter, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
@@ -10,7 +10,7 @@ import LiveImpact from './pages/LiveImpact';
 
 export default function App() {
     return (
-        <BrowserRouter>
+        <HashRouter>
             <div className="min-h-screen bg-bg-primary font-body">
                 <Navbar />
                 <Routes>
@@ -23,6 +23,6 @@ export default function App() {
                 </Routes>
                 <Toaster position="bottom-right" />
             </div>
-        </BrowserRouter>
+        </HashRouter>
     );
 }

@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import { getPlayerById, getPlayerInnings } from '../data/staticData';
 import GaugeMeter from '../components/GaugeMeter';
 import ImpactTrendChart from '../components/ImpactTrendChart';
 import InningsTable from '../components/InningsTable';
@@ -32,7 +33,12 @@ export default function PlayerProfile() {
                 setPlayer(pRes.data);
                 setInnings(iRes.data);
             })
-            .catch(() => toast.error('Failed to load player data'))
+            .catch(() => {
+                const p = getPlayerById(id);
+                const i = getPlayerInnings(id);
+                if (p) { setPlayer(p); setInnings(i); }
+                else toast.error('Player not found');
+            })
             .finally(() => setLoading(false));
     }, [id]);
 

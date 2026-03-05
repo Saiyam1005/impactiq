@@ -5,6 +5,7 @@ import axios from 'axios';
 import toast from 'react-hot-toast';
 import PlayerCard from '../components/PlayerCard';
 import { useCountUp } from '../hooks/useIMScore';
+import { getLeaderboard } from '../data/staticData';
 
 const stagger = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.12 } } };
 const fadeUp = { hidden: { opacity: 0, y: 30 }, show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] } } };
@@ -40,7 +41,7 @@ export default function Home() {
         });
         axios.get('/api/leaderboard')
             .then(res => setPlayers(res.data))
-            .catch(() => { })
+            .catch(() => setPlayers(getLeaderboard()))
             .finally(() => setLoading(false));
     }, []);
 

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import { playersData, getCompareData } from '../data/staticData';
 import GaugeMeter from '../components/GaugeMeter';
 import RadarChart from '../components/RadarChart';
 import { getScoreColor } from '../utils/imCalculator';
@@ -43,7 +44,7 @@ export default function HeadToHead() {
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
-        axios.get('/api/players').then(r => setPlayers(r.data)).catch(() => { });
+        axios.get('/api/players').then(r => setPlayers(r.data)).catch(() => setPlayers(playersData));
     }, []);
 
     useEffect(() => {
@@ -55,7 +56,10 @@ export default function HeadToHead() {
         });
         axios.get(`/api/compare/${p1Id}/${p2Id}`)
             .then(r => setData(r.data))
-            .catch(() => toast.error('Failed to load comparison'))
+            .catch(() => {
+                const fallback = getCompareData(p1Id, p2Id);
+                if (fallback) setData(fallback);
+            })
             .finally(() => setLoading(false));
     }, [p1Id, p2Id]);
 
