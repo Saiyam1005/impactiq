@@ -40,8 +40,8 @@ export default function Home() {
             duration: 4000,
         });
         axios.get('/api/leaderboard')
-            .then(res => setPlayers(res.data))
-            .catch(() => setPlayers(getLeaderboard()))
+            .then(res => setPlayers(res.data.slice(0, 10)))
+            .catch(() => setPlayers(getLeaderboard().slice(0, 10)))
             .finally(() => setLoading(false));
     }, []);
 
