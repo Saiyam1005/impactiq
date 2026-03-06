@@ -88,8 +88,50 @@ export default function LiveImpact() {
                     ? "Dot ball. Good pressure from the bowler."
                     : `${currentBall.runs} run${currentBall.runs > 1 ? 's' : ''} taken.`;
 
-    // Dynamic IM approximation for display
-    const currentIM = Math.min(100, Math.max(0, (currentBall.totalScore / (oversBowled || 1)) * 5 + (fows.length * -2)));
+    // Identify Turning Point
+    let isTurningPoint = false;
+    let turningPointText = '';
+    
+    if (inning === 'RSA') {
+        const last12Balls = activeTeamData.balls.slice(Math.max(0, ballIndex - 12), ballIndex + 1);
+        const wicketsInLast2Overs = last12Balls.filter(b => b.isWicket).length;
+        const runsInLast2Overs = last12Balls.reduce((sum, b) => sum + b.runs, 0);
+        
+        if (wicketsInLast2Overs >= 2) {
+            isTurningPoint = true;
+            turningPointText = `${wicketsInLast2Overs} wickets fell quickly—India wrests control!`;
+        } else if (runsInLast2Overs >= 28) {
+            isTurningPoint = true;
+            turningPointText = `${runsInLast2Overs} runs in last 12 balls—South Africa dominating the chase!`;
+        }
+        
+        if (currentBall.isWicket && currentBall.playerOut?.includes('Klaasen')) {
+            isTurningPoint = true;
+            turningPointText = "KLAASEN DISMISSED! Massive momentum shift to India!";
+        }
+    } else {
+        const last12Balls = activeTeamData.balls.slice(Math.max(0, ballIndex - 12), ballIndex + 1);
+        const runsInLast2Overs = last12Balls.reduce((sum, b) => sum + b.runs, 0);
+        if (runsInLast2Overs >= 30) {
+            isTurningPoint = true;
+            turningPointText = "Huge onslaught! India accelerating towards a massive total.";
+        }
+        if (currentBall.isWicket && currentBall.playerOut?.includes('Rohit')) {
+            isTurningPoint = true;
+            turningPointText = "Key wicket! South Africa strikes early.";
+        }
+    }
+
+    // Identify current batters
+    const fowsTillNow = activeTeamData.balls.slice(0, ballIndex + 1).filter(b => b.isWicket).map(b => b.playerOut);
+    const battersData = inning === 'IND' 
+        ? ["Rohit Sharma", "Virat Kohli", "Rishabh Pant", "Suryakumar Yadav", "Axar Patel", "Shivam Dube", "Hardik Pandya"]
+        : ["Reeza Hendricks", "Quinton de Kock", "Aiden Markram", "Tristan Stubbs", "Heinrich Klaasen", "David Miller", "Marco Jansen"];
+    
+    // Simplistic current batter logic: Top 2 names not in FOW
+    const currentBatters = battersData.filter(name => !fowsTillNow.some(fow => fow && fow.includes(name.split(' ')[0]))).slice(0, 2);
+    const striker = currentBatters[0] || "Unknown";
+    const nonStriker = currentBatters[1] || "Unknown";
 
     return (
         <div className="min-h-screen pt-20 pb-20 px-4 relative">
@@ -173,37 +215,92 @@ export default function LiveImpact() {
                             </div>
                         </motion.div>
 
-                        <motion.div variants={fadeUp} className="bg-bg-card border border-border-subtle rounded-2xl p-6 shadow-lg shadow-cyan/5 flex flex-col items-center justify-center text-center">
-                            <h3 className="font-display text-xl text-text-primary mb-2 flex items-center justify-center gap-2 w-full">
-                                <FiZap className="text-gold text-lg" /> Team Impact Tracker
-                            </h3>
-                            <p className="text-text-muted text-xs mb-8">Real-time overall impact shift based on match state</p>
-
-                            <div className="relative w-48 h-48 mb-6">
-                                <svg viewBox="0 0 100 100" className="w-full h-full transform -rotate-90">
-                                    <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="10" />
-                                    <circle
-                                        cx="50" cy="50" r="45" fill="none"
-                                        stroke={currentIM > 50 ? "#00E5FF" : "#F7645A"}
-                                        strokeWidth="10"
-                                        strokeDasharray="282.7"
-                                        strokeDashoffset={282.7 - (282.7 * currentIM) / 100}
-                                        strokeLinecap="round"
-                                        className="transition-all duration-1000 ease-out"
-                                    />
-                                </svg>
-                                <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                    <span className="font-display text-4xl text-text-primary">{Math.round(currentIM)}</span>
-                                    <span className="text-[10px] text-text-muted uppercase font-bold tracking-widest mt-1">Impact Pt</span>
+                        <div className="flex flex-col gap-6">
+                            <motion.div variants={fadeUp} className="bg-bg-card border border-border-subtle rounded-2xl p-6 shadow-lg shadow-cyan/5">
+                                <h3 className="font-display text-lg text-text-primary mb-4 flex items-center justify-between border-b border-border-subtle pb-3">
+                                    <span className="flex items-center gap-2"><FiZap className="text-gold" /> Live Scoreboard</span>
+                                </h3>
+                                
+                                <div className="mb-4">
+                                    <p className="text-[10px] uppercase tracking-widest text-text-muted font-bold mb-2">Batting</p>
+                                    <div className="flex items-center justify-between bg-bg-primary p-3 rounded-lg border border-cyan/30 shadow-[0_0_10px_rgba(0,229,255,0.1)] mb-2">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-lg">🏏</span>
+                                            <span className="font-display text-text-primary">{striker} <span className="text-cyan">*</span></span>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center justify-between bg-bg-primary p-3 rounded-lg border border-border-subtle">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-lg opacity-50">🏃</span>
+                                            <span className="font-display text-text-secondary">{nonStriker}</span>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
+                                
+                                <div>
+                                    <p className="text-[10px] uppercase tracking-widest text-text-muted font-bold mb-2">Bowling</p>
+                                    <div className="flex items-center justify-between bg-bg-primary p-3 rounded-lg border border-red/30 shadow-[0_0_10px_rgba(247,100,90,0.1)]">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-lg">⚾</span>
+                                            <span className="font-display text-text-primary">{currentBall.bowler || (inning==='IND'?'Rabada':'Bumrah')} *</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </motion.div>
 
-                            <div className="w-full bg-bg-primary rounded-xl p-4 border border-border-subtle">
-                                <p className="text-text-secondary text-sm">
-                                    {inning === 'IND' ? 'India building the total' : 'South Africa chasing the target'}
-                                </p>
-                            </div>
-                        </motion.div>
+                            <AnimatePresence mode="popLayout">
+                                {isTurningPoint ? (
+                                    <motion.div 
+                                        initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                                        exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                                        className="bg-gradient-to-br from-[#2D1A1A] to-bg-card border border-red/50 rounded-2xl p-6 shadow-[0_0_20px_rgba(247,100,90,0.2)] flex flex-col items-center text-center relative overflow-hidden"
+                                    >
+                                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-red to-transparent animate-pulse" />
+                                        <FiActivity className="text-red text-4xl mb-3 animate-bounce" />
+                                        <h3 className="font-display text-xl text-text-primary mb-2">MATCH TURNING POINT!</h3>
+                                        <p className="text-red font-medium text-sm leading-relaxed">{turningPointText}</p>
+                                    </motion.div>
+                                ) : (
+                                    <motion.div 
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        exit={{ opacity: 0 }}
+                                        className="bg-bg-card border border-border-subtle rounded-2xl p-6 shadow-lg shadow-cyan/5 flex flex-col items-center justify-center text-center"
+                                    >
+                                        <h3 className="font-display text-xl text-text-primary mb-2 flex items-center justify-center gap-2 w-full">
+                                            <FiZap className="text-gold text-lg" /> Team Impact Tracker
+                                        </h3>
+                                        <p className="text-text-muted text-xs mb-8">Real-time overall impact shift based on match state</p>
+
+                                        <div className="relative w-40 h-40 mb-6 flex-shrink-0">
+                                            <svg viewBox="0 0 100 100" className="w-full h-full transform -rotate-90">
+                                                <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="10" />
+                                                <circle
+                                                    cx="50" cy="50" r="45" fill="none"
+                                                    stroke={currentIM > 50 ? "#00E5FF" : "#F7645A"}
+                                                    strokeWidth="10"
+                                                    strokeDasharray="282.7"
+                                                    strokeDashoffset={282.7 - (282.7 * currentIM) / 100}
+                                                    strokeLinecap="round"
+                                                    className="transition-all duration-1000 ease-out"
+                                                />
+                                            </svg>
+                                            <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                                <span className="font-display text-4xl text-text-primary">{Math.round(currentIM)}</span>
+                                                <span className="text-[10px] text-text-muted uppercase font-bold tracking-widest mt-1">Impact Pt</span>
+                                            </div>
+                                        </div>
+
+                                        <div className="w-full bg-bg-primary rounded-xl p-4 border border-border-subtle">
+                                            <p className="text-text-secondary text-sm">
+                                                {inning === 'IND' ? 'India building the total' : 'South Africa chasing the target'}
+                                            </p>
+                                        </div>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </div>
                     </div>
 
                     {/* Timeline Controls */}
