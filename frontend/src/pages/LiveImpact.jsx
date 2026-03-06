@@ -1,6 +1,6 @@
-import { useState, useMemo, useEffect } from 'react';
+﻿import { useState, useMemo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiZap, FiActivity, FiBarChart2 } from 'react-icons/fi';
+import { FiZap, FiActivity, FiBarChart2, FiTrendingUp } from 'react-icons/fi';
 import { LuFlaskConical, LuRadio } from 'react-icons/lu';
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } };
@@ -12,6 +12,11 @@ export default function LiveImpact() {
     const [runsSlider, setRunsSlider] = useState(20);
     const [wicketsSlider, setWicketsSlider] = useState(0);
     const [isKnockout, setIsKnockout] = useState(true);
+
+    const [momentumHistory, setMomentumHistory] = useState([
+        { ball: '16.0', momentum: 0, event: 'start', desc: 'Match resumes. 54 needed from 21.' }
+    ]);
+    const [turningPoint, setTurningPoint] = useState(null);
 
     const [matchState, setMatchState] = useState({
         indScore: 187,
@@ -60,7 +65,8 @@ export default function LiveImpact() {
 
                 const overNum = 19 - Math.floor(newBallsLeft / 6);
                 const ballNum = 6 - (newBallsLeft % 6 === 0 ? 0 : newBallsLeft % 6);
-                let logMsg = `${Math.max(16, overNum)}.${ballNum === 0 ? 6 : ballNum} ${curBowlerName} to ${prev.striker}: `;
+                const ballLabel = `${Math.max(16, overNum)}.${ballNum === 0 ? 6 : ballNum}`;
+                let logMsg = `${ballLabel} ${curBowlerName} to ${prev.striker}: `;
 
                 if (isWicket) logMsg += `OUT! Clean bowled by ${curBowlerName}! Brilliant delivery!`;
                 else if (runs === 4) logMsg += "FOUR! Driven beautifully through the covers.";
@@ -112,6 +118,41 @@ export default function LiveImpact() {
                 } else if (newAusWickets >= 10 || newBallsLeft <= 0) {
                     logMsg = `MATCH OVER! India wins by ${prev.target - newAusScore} runs!`;
                 }
+
+                // Momentum calculation: positive = batting team (AUS), negative = bowling team (IND)
+                const reqRunsNow = prev.target - newAusScore;
+                const rrrNow = newBallsLeft > 0 ? (reqRunsNow / newBallsLeft) * 6 : 99;
+                let momentumDelta = 0;
+                if (isWicket) momentumDelta = -15; // Massive swing to bowling
+                else if (runs === 6) momentumDelta = 12;
+                else if (runs === 4) momentumDelta = 7;
+                else if (runs === 0) momentumDelta = -3;
+                else momentumDelta = 1;
+
+                // Add RRR pressure factor
+                if (rrrNow > 12) momentumDelta -= 3;
+                else if (rrrNow < 7) momentumDelta += 2;
+
+                const eventType = isWicket ? 'wicket' : runs >= 4 ? 'boundary' : runs === 0 ? 'dot' : 'single';
+                const shortDesc = isWicket
+                    ? `${curBowlerName} gets ${prev.striker}! Momentum swings to IND.`
+                    : runs === 6 ? `SIX by ${prev.striker}! AUS gain momentum.`
+                        : runs === 4 ? `FOUR! ${prev.striker} finds the gap.`
+                            : runs === 0 ? `Dot ball. ${curBowlerName} building pressure.`
+                                : `${runs} taken. Steady scoring.`;
+
+                setMomentumHistory(mh => {
+                    const lastMomentum = mh.length > 0 ? mh[mh.length - 1].momentum : 0;
+                    const newMomentum = Math.max(-50, Math.min(50, lastMomentum + momentumDelta));
+                    const newEntry = { ball: ballLabel, momentum: newMomentum, event: eventType, desc: shortDesc };
+
+                    // Detect turning point: momentum crosses zero threshold significantly
+                    if (Math.abs(newMomentum - lastMomentum) >= 12 || (lastMomentum >= 0 && newMomentum < -5) || (lastMomentum <= 0 && newMomentum > 5)) {
+                        setTurningPoint({ ball: ballLabel, desc: shortDesc, delta: momentumDelta });
+                    }
+
+                    return [...mh.slice(-15), newEntry];
+                });
 
                 return {
                     ...prev,
@@ -191,11 +232,10 @@ export default function LiveImpact() {
         },
     ];
 
-    // Simulator calculations (Right panel)
+    // Simulator calculations
     const simulation = useMemo(() => {
         const imDelta = (runsSlider < 15 ? 4.2 : runsSlider < 35 ? 2.1 : -1.8) + (wicketsSlider * 1.5);
         const pressureIdx = Math.min(100, 87 + (wicketsSlider * 3) - (runsSlider > 30 ? 8 : 0));
-
         return {
             bumrahDelta: imDelta > 0 ? `+${imDelta.toFixed(1)}` : imDelta.toFixed(1),
             bumrahColor: imDelta > 0 ? '#00D68F' : '#F7645A',
@@ -208,10 +248,22 @@ export default function LiveImpact() {
         };
     }, [runsSlider, wicketsSlider, isKnockout]);
 
-    // Live Pressure Index (Connected to match state instead of slider)
+    // Live Pressure Index
     const livePressureBase = 60 + (matchState.ausWickets * 4);
     const reqRateFactor = isMatchOver ? 0 : (parseFloat(rrr) - 8) * 3;
     const livePressurePercent = Math.min(100, Math.max(0, Math.floor(livePressureBase + (reqRateFactor || 0))));
+
+    // Momentum chart dimensions
+    const chartW = 480;
+    const chartH = 100;
+    const momPoints = momentumHistory.map((m, i) => {
+        const x = (i / Math.max(1, momentumHistory.length - 1)) * chartW;
+        const y = chartH / 2 - (m.momentum / 50) * (chartH / 2);
+        return { x, y, ...m };
+    });
+    const pathD = momPoints.length > 1
+        ? `M ${momPoints.map(p => `${p.x},${p.y}`).join(' L ')}`
+        : '';
 
     return (
         <div className="min-h-screen pt-16">
@@ -230,7 +282,7 @@ export default function LiveImpact() {
 
             <div className="max-w-7xl mx-auto px-4 py-8">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    {/* Left: Match + Player Table */}
+                    {/* Left: Match + Player Table + Turning Point */}
                     <div className="lg:col-span-2 space-y-6">
                         {/* Match Card */}
                         <motion.div variants={fadeUp} initial="hidden" animate="show"
@@ -332,6 +384,75 @@ export default function LiveImpact() {
                                 IM scores recalculate instantly based on boundaries hit, dots, and wickets fallen under pressure.
                             </div>
                         </motion.div>
+
+                        {/* ⭐ NEW: Match Turning Point Detector */}
+                        <motion.div variants={fadeUp} initial="hidden" animate="show" transition={{ delay: 0.2 }}
+                            className="bg-bg-card border border-border-subtle rounded-2xl p-5"
+                        >
+                            <h3 className="text-text-primary font-semibold flex items-center gap-2 mb-1">
+                                <FiTrendingUp className="text-gold" /> Match Turning Point Detector
+                            </h3>
+                            <p className="text-text-muted text-xs mb-4">
+                                Tracks momentum shifts ball-by-ball. Positive = AUS gaining control, Negative = IND in command.
+                            </p>
+
+                            {/* Momentum Graph */}
+                            <div className="bg-bg-primary rounded-xl border border-border-subtle p-4 overflow-hidden">
+                                <svg viewBox={`0 0 ${chartW} ${chartH}`} className="w-full h-24" preserveAspectRatio="none">
+                                    {/* Zero line */}
+                                    <line x1="0" y1={chartH / 2} x2={chartW} y2={chartH / 2} stroke="#1E3A5F" strokeWidth="1" strokeDasharray="4 4" />
+                                    {/* Zone labels */}
+                                    <text x="4" y="12" fill="#00D68F" fontSize="8" fontWeight="600">AUS ↑</text>
+                                    <text x="4" y={chartH - 4} fill="#F7645A" fontSize="8" fontWeight="600">IND ↑</text>
+
+                                    {/* Momentum line */}
+                                    {pathD && (
+                                        <path d={pathD} fill="none" stroke="#00E5FF" strokeWidth="2" strokeLinejoin="round" />
+                                    )}
+
+                                    {/* Event dots */}
+                                    {momPoints.map((p, i) => (
+                                        <circle
+                                            key={i}
+                                            cx={p.x} cy={p.y} r={p.event === 'wicket' ? 5 : p.event === 'boundary' ? 4 : 2}
+                                            fill={p.event === 'wicket' ? '#F7645A' : p.event === 'boundary' ? '#00E5FF' : '#4A5E7A'}
+                                            stroke={p.event === 'wicket' || p.event === 'boundary' ? '#0D1526' : 'none'}
+                                            strokeWidth="1.5"
+                                        />
+                                    ))}
+                                </svg>
+                                <div className="flex justify-between text-[9px] text-text-muted mt-1">
+                                    <span>{momentumHistory[0]?.ball || ''}</span>
+                                    <div className="flex gap-3">
+                                        <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red" /> Wicket</span>
+                                        <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-cyan" /> Boundary</span>
+                                        <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-text-muted" /> Dot/Single</span>
+                                    </div>
+                                    <span>{momentumHistory[momentumHistory.length - 1]?.ball || ''}</span>
+                                </div>
+                            </div>
+
+                            {/* Latest Turning Point */}
+                            {turningPoint && (
+                                <AnimatePresence mode="wait">
+                                    <motion.div
+                                        key={turningPoint.ball}
+                                        initial={{ opacity: 0, y: 5 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        className="mt-4 bg-gold/10 border border-gold/30 rounded-xl p-3 flex items-start gap-3"
+                                    >
+                                        <FiZap className="text-gold mt-0.5 shrink-0" />
+                                        <div>
+                                            <p className="text-gold text-xs font-bold">Turning Point Detected — Ball {turningPoint.ball}</p>
+                                            <p className="text-text-secondary text-xs mt-0.5">{turningPoint.desc}</p>
+                                        </div>
+                                        <span className={`text-xs font-bold ml-auto ${turningPoint.delta < 0 ? 'text-red' : 'text-green'}`}>
+                                            {turningPoint.delta > 0 ? '+' : ''}{turningPoint.delta}
+                                        </span>
+                                    </motion.div>
+                                </AnimatePresence>
+                            )}
+                        </motion.div>
                     </div>
 
                     {/* Right: Pressure Meter + Simulator */}
@@ -382,7 +503,6 @@ export default function LiveImpact() {
                             </h3>
                             <p className="text-xs text-text-muted mb-4 border-b border-border-subtle pb-3">Test hypothesis: How would the bowling attack's impact change?</p>
 
-                            {/* Slider 1: Runs */}
                             <div className="mb-4">
                                 <div className="flex justify-between text-xs mb-1.5">
                                     <span className="text-text-secondary">Runs conceded</span>
@@ -395,7 +515,6 @@ export default function LiveImpact() {
                                 />
                             </div>
 
-                            {/* Slider 2: Wickets */}
                             <div className="mb-4">
                                 <div className="flex justify-between text-xs mb-1.5">
                                     <span className="text-text-secondary">Wickets taken</span>
@@ -408,7 +527,6 @@ export default function LiveImpact() {
                                 />
                             </div>
 
-                            {/* Output */}
                             <div className="bg-bg-elevated border border-border-accent rounded-xl p-4">
                                 <p className="text-text-muted text-xs mb-3">Predicted Outcome:</p>
                                 <div className="space-y-2">
