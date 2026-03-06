@@ -9,6 +9,20 @@ const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } };
 // Generate over buttons 1 to 20
 const overButtons = Array.from({ length: 20 }, (_, i) => i + 1);
 
+const saBowlersOvers = [
+    "Marco Jansen", "Keshav Maharaj", "Marco Jansen", "Kagiso Rabada", "Aiden Markram",
+    "Anrich Nortje", "Keshav Maharaj", "Tabraiz Shamsi", "Aiden Markram", "Tabraiz Shamsi",
+    "Kagiso Rabada", "Tabraiz Shamsi", "Anrich Nortje", "Keshav Maharaj", "Kagiso Rabada",
+    "Marco Jansen", "Anrich Nortje", "Kagiso Rabada", "Marco Jansen", "Anrich Nortje"
+];
+
+const indBowlersOvers = [
+    "Arshdeep Singh", "Jasprit Bumrah", "Arshdeep Singh", "Jasprit Bumrah", "Axar Patel",
+    "Kuldeep Yadav", "Axar Patel", "Kuldeep Yadav", "Axar Patel", "Kuldeep Yadav",
+    "Hardik Pandya", "Kuldeep Yadav", "Arshdeep Singh", "Jasprit Bumrah", "Axar Patel",
+    "Jasprit Bumrah", "Hardik Pandya", "Jasprit Bumrah", "Arshdeep Singh", "Hardik Pandya"
+];
+
 export default function LiveImpact() {
     const [inning, setInning] = useState('IND');
     // ballIndex refers to index in the 120 balls array (0 to 119)
@@ -77,9 +91,25 @@ export default function LiveImpact() {
         }
     }
 
+    // Identify current bowler and calculate overs bowled
+    const activeBowlersMap = inning === 'IND' ? saBowlersOvers : indBowlersOvers;
+    const currentOverZeroIndex = Math.floor(ballIndex / 6);
+    const activeBowler = activeBowlersMap[currentOverZeroIndex] || "Unknown Bowler";
+
+    // Calculate overs bowled so far for this bowler (including current partial over)
+    let oversBowledByActive = 0;
+    for (let i = 0; i < currentOverZeroIndex; i++) {
+        if (activeBowlersMap[i] === activeBowler) oversBowledByActive += 1;
+    }
+    const ballsInCurrentOver = (ballIndex % 6) + 1;
+    const isOverComplete = ballsInCurrentOver === 6;
+    if (isOverComplete) oversBowledByActive += 1;
+
+    const bowlerOverString = `${oversBowledByActive}${!isOverComplete ? `.${ballsInCurrentOver}` : '.0'} / 4.0`;
+
     // Event text
-    const eventText = currentBall.isWicket
-        ? `OUT! ${currentBall.playerOut} dismissed by ${currentBall.bowler}`
+    let eventText = currentBall.isWicket
+        ? `OUT! ${currentBall.playerOut} dismissed by ${activeBowler}`
         : currentBall.runs === 6
             ? "SIX! Massive hit into the stands!"
             : currentBall.runs === 4
@@ -87,6 +117,11 @@ export default function LiveImpact() {
                 : currentBall.runs === 0
                     ? "Dot ball. Good pressure from the bowler."
                     : `${currentBall.runs} run${currentBall.runs > 1 ? 's' : ''} taken.`;
+
+    // David Miller catch at 19.1
+    if (inning === 'RSA' && currentBall.isWicket && currentBall.label === '19.1') {
+        eventText = "Long-off... long-off... LONG OFFFFFFFF! Suryakumar Yadav!";
+    }
 
     // Identify Turning Point
     let isTurningPoint = false;
@@ -243,9 +278,12 @@ export default function LiveImpact() {
                                 <div>
                                     <p className="text-[10px] uppercase tracking-widest text-text-muted font-bold mb-2">Bowling</p>
                                     <div className="flex items-center justify-between bg-bg-primary p-3 rounded-lg border border-red/30 shadow-[0_0_10px_rgba(247,100,90,0.1)]">
-                                        <div className="flex items-center gap-2">
+                                        <div className="flex items-center gap-3">
                                             <span className="text-lg">⚾</span>
-                                            <span className="font-display text-text-primary">{currentBall.bowler || (inning === 'IND' ? 'Rabada' : 'Bumrah')} *</span>
+                                            <span className="font-display text-text-primary flex flex-col items-start leading-tight">
+                                                <span>{activeBowler} *</span>
+                                                <span className="text-text-muted text-[10px] font-sans font-normal tracking-wide mt-0.5">{bowlerOverString} Overs</span>
+                                            </span>
                                         </div>
                                     </div>
                                 </div>
