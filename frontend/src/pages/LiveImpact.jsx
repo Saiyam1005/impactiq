@@ -108,7 +108,7 @@ export default function LiveImpact() {
                     log: logMsg
                 };
             });
-        }, 3000);
+        }, 12000);
 
         return () => clearInterval(timer);
     }, [matchState.ballsLeft, matchState.ausScore, matchState.ausWickets]);
@@ -193,7 +193,7 @@ export default function LiveImpact() {
                         {isMatchOver ? 'MATCH COMPLETED' : 'LIVE MATCH MODE'}
                     </span>
                     <span className="text-text-muted text-xs ml-auto">
-                        {isMatchOver ? 'Final statistics' : 'Auto-updating every 3s'}
+                        {isMatchOver ? 'Final statistics' : 'Auto-updating every ball'}
                     </span>
                 </div>
             </div>
