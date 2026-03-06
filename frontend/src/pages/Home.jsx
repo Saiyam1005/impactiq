@@ -6,11 +6,15 @@ import toast from 'react-hot-toast';
 import PlayerCard from '../components/PlayerCard';
 import { useCountUp } from '../hooks/useIMScore';
 import { getLeaderboard, playersData, inningsData } from '../data/staticData';
+import { HiOutlineBolt } from 'react-icons/hi2';
+import { FiUsers, FiBarChart2, FiTarget, FiArrowRight } from 'react-icons/fi';
+import { MdSportsCricket } from 'react-icons/md';
+import { LuSwords, LuRadio, LuBookOpen } from 'react-icons/lu';
 
 const stagger = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.12 } } };
 const fadeUp = { hidden: { opacity: 0, y: 30 }, show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] } } };
 
-function StatCard({ label, target, suffix = '', icon }) {
+function StatCard({ label, target, suffix = '', icon: Icon }) {
     const { value, ref } = useCountUp(target, 1500);
     const display = Number.isInteger(target) ? Math.round(value) : value.toFixed(1);
     return (
@@ -20,7 +24,9 @@ function StatCard({ label, target, suffix = '', icon }) {
             whileHover={{ scale: 1.03, borderColor: 'rgba(0,229,255,0.3)' }}
             className="bg-bg-card border border-border-subtle rounded-2xl p-6 text-center hover:shadow-lg hover:shadow-cyan/5 transition-all duration-300"
         >
-            <div className="text-2xl mb-2">{icon}</div>
+            <div className="flex justify-center mb-2">
+                <Icon className="text-cyan text-2xl" />
+            </div>
             <p className="text-text-muted text-[10px] uppercase tracking-[0.2em] font-semibold mb-2">{label}</p>
             <p className="font-display text-4xl lg:text-5xl text-text-primary">
                 {display.toLocaleString()}{suffix}
@@ -64,8 +70,8 @@ export default function Home() {
                     animate="show"
                     className="relative z-10 text-center max-w-5xl mx-auto px-4"
                 >
-                    <motion.p variants={fadeUp} className="text-cyan text-xs sm:text-sm tracking-[0.35em] uppercase font-semibold mb-8">
-                        ⚡ The Future of Cricket Analytics
+                    <motion.p variants={fadeUp} className="text-cyan text-xs sm:text-sm tracking-[0.35em] uppercase font-semibold mb-8 flex items-center justify-center gap-2">
+                        <HiOutlineBolt className="text-lg" /> The Future of Cricket Analytics
                     </motion.p>
 
                     <motion.h1 variants={fadeUp} className="font-display text-5xl sm:text-7xl lg:text-[100px] leading-[0.92] mb-8">
@@ -81,16 +87,16 @@ export default function Home() {
                     <motion.div variants={fadeUp} className="flex flex-col sm:flex-row gap-4 justify-center">
                         <button
                             onClick={() => navigate('/leaderboard')}
-                            className="group px-10 py-4 bg-cyan text-bg-primary font-bold rounded-xl hover:bg-cyan/90 transition-all shadow-lg shadow-cyan/25 text-sm relative overflow-hidden"
+                            className="group px-10 py-4 bg-cyan text-bg-primary font-bold rounded-xl hover:bg-cyan/90 transition-all shadow-lg shadow-cyan/25 text-sm relative overflow-hidden flex items-center justify-center gap-2"
                         >
-                            <span className="relative z-10">Explore Players →</span>
+                            <span className="relative z-10 flex items-center gap-2">Explore Players <FiArrowRight /></span>
                             <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-500" />
                         </button>
                         <button
                             onClick={() => navigate('/methodology')}
-                            className="px-10 py-4 border border-border-accent text-text-primary font-semibold rounded-xl hover:bg-bg-card hover:border-cyan/50 transition-all text-sm backdrop-blur-sm"
+                            className="px-10 py-4 border border-border-accent text-text-primary font-semibold rounded-xl hover:bg-bg-card hover:border-cyan/50 transition-all text-sm backdrop-blur-sm flex items-center justify-center gap-2"
                         >
-                            How It Works
+                            <LuBookOpen /> How It Works
                         </button>
                     </motion.div>
                 </motion.div>
@@ -105,10 +111,10 @@ export default function Home() {
                     viewport={{ once: true, margin: "-50px" }}
                     className="grid grid-cols-2 lg:grid-cols-4 gap-4"
                 >
-                    <StatCard label="Players Tracked" target={totalPlayers} icon="👤" />
-                    <StatCard label="Innings Analyzed" target={totalInnings} icon="🏏" />
-                    <StatCard label="Global Avg IM" target={globalAvgIM} icon="📊" />
-                    <StatCard label="Predictive Accuracy" target={94} suffix="%" icon="🎯" />
+                    <StatCard label="Players Tracked" target={totalPlayers} icon={FiUsers} />
+                    <StatCard label="Innings Analyzed" target={totalInnings} icon={MdSportsCricket} />
+                    <StatCard label="Global Avg IM" target={globalAvgIM} icon={FiBarChart2} />
+                    <StatCard label="Predictive Accuracy" target={94} suffix="%" icon={FiTarget} />
                 </motion.div>
             </section>
 
@@ -161,14 +167,14 @@ export default function Home() {
                     <h2 className="font-display text-3xl text-text-primary mb-3">Ready to Dive Deeper?</h2>
                     <p className="text-text-secondary mb-6 max-w-lg mx-auto">Compare players head-to-head, explore the methodology, or watch live impact scores in action.</p>
                     <div className="flex flex-wrap gap-3 justify-center">
-                        <button onClick={() => navigate('/compare')} className="px-6 py-3 bg-bg-card border border-border-accent rounded-xl text-text-primary text-sm font-medium hover:border-cyan/50 transition-all">
-                            ⚔️ Compare Players
+                        <button onClick={() => navigate('/compare')} className="px-6 py-3 bg-bg-card border border-border-accent rounded-xl text-text-primary text-sm font-medium hover:border-cyan/50 transition-all flex items-center gap-2">
+                            <LuSwords className="text-cyan" /> Compare Players
                         </button>
-                        <button onClick={() => navigate('/live')} className="px-6 py-3 bg-bg-card border border-border-accent rounded-xl text-text-primary text-sm font-medium hover:border-cyan/50 transition-all">
-                            🔴 Live Impact
+                        <button onClick={() => navigate('/live')} className="px-6 py-3 bg-bg-card border border-border-accent rounded-xl text-text-primary text-sm font-medium hover:border-cyan/50 transition-all flex items-center gap-2">
+                            <LuRadio className="text-red" /> Live Impact
                         </button>
-                        <button onClick={() => navigate('/methodology')} className="px-6 py-3 bg-bg-card border border-border-accent rounded-xl text-text-primary text-sm font-medium hover:border-cyan/50 transition-all">
-                            📐 Methodology
+                        <button onClick={() => navigate('/methodology')} className="px-6 py-3 bg-bg-card border border-border-accent rounded-xl text-text-primary text-sm font-medium hover:border-cyan/50 transition-all flex items-center gap-2">
+                            <LuBookOpen className="text-violet" /> Methodology
                         </button>
                     </div>
                 </motion.div>

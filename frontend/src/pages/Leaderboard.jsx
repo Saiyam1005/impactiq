@@ -6,6 +6,10 @@ import axios from 'axios';
 import IMBadge from '../components/IMBadge';
 import { getLeaderboard } from '../data/staticData';
 import { getScoreColor, getIMLabel } from '../utils/imCalculator';
+import { FiFilter, FiSearch } from 'react-icons/fi';
+import { MdSportsCricket } from 'react-icons/md';
+import { LuList, LuSword } from 'react-icons/lu';
+import { FiAward } from 'react-icons/fi';
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.5 } } };
 
@@ -13,9 +17,9 @@ const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transi
 function PodiumCard({ player, rank }) {
     const navigate = useNavigate();
     const colors = {
-        1: { border: '#F0B429', glow: 'rgba(240,180,41,0.25)', bg: 'linear-gradient(135deg, rgba(240,180,41,0.12), transparent)', label: '🏆' },
-        2: { border: '#C0C0C0', glow: 'rgba(192,192,192,0.15)', bg: 'linear-gradient(135deg, rgba(192,192,192,0.08), transparent)', label: '🥈' },
-        3: { border: '#CD7F32', glow: 'rgba(205,127,50,0.15)', bg: 'linear-gradient(135deg, rgba(205,127,50,0.08), transparent)', label: '🥉' },
+        1: { border: '#F0B429', glow: 'rgba(240,180,41,0.25)', bg: 'linear-gradient(135deg, rgba(240,180,41,0.12), transparent)', label: '1st' },
+        2: { border: '#C0C0C0', glow: 'rgba(192,192,192,0.15)', bg: 'linear-gradient(135deg, rgba(192,192,192,0.08), transparent)', label: '2nd' },
+        3: { border: '#CD7F32', glow: 'rgba(205,127,50,0.15)', bg: 'linear-gradient(135deg, rgba(205,127,50,0.08), transparent)', label: '3rd' },
     };
     const c = colors[rank];
     const scoreColor = getScoreColor(player.im_score);
@@ -84,7 +88,7 @@ function PodiumCard({ player, rank }) {
 
             {/* Trophy for #1 */}
             {isFirst && (
-                <div className="mt-2 text-2xl">{c.label}</div>
+                <div className="mt-2 text-amber"><FiAward size={28} /></div>
             )}
         </motion.div>
     );
@@ -118,9 +122,9 @@ export default function Leaderboard() {
     }, [players, roleFilter, search]);
 
     const roles = [
-        { key: 'ALL', label: 'All', icon: '📋' },
-        { key: 'BAT', label: 'Batsmen', icon: '🏏' },
-        { key: 'BOWL', label: 'Bowlers', icon: '🎳' },
+        { key: 'ALL', label: 'All', Icon: LuList },
+        { key: 'BAT', label: 'Batsmen', Icon: MdSportsCricket },
+        { key: 'BOWL', label: 'Bowlers', Icon: LuSword },
     ];
 
     if (loading) return (
@@ -155,9 +159,7 @@ export default function Leaderboard() {
                     className="bg-bg-card border border-border-subtle rounded-2xl p-4 mb-10 flex flex-wrap items-center gap-3"
                 >
                     <span className="text-text-muted text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-text-muted">
-                            <path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z" />
-                        </svg>
+                        <FiFilter className="text-text-muted" size={14} />
                         Filters
                     </span>
                     <div className="h-5 w-px bg-border-subtle" />
@@ -173,19 +175,20 @@ export default function Leaderboard() {
                                     : 'text-text-secondary hover:text-text-primary hover:bg-bg-card'
                                     }`}
                             >
-                                <span>{r.icon}</span> {r.label}
+                                <r.Icon size={14} /> {r.label}
                             </button>
                         ))}
                     </div>
 
                     {/* Search */}
-                    <div className="flex-grow max-w-sm ml-auto">
+                    <div className="flex-grow max-w-sm ml-auto relative">
+                        <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" size={14} />
                         <input
                             type="text"
                             value={search}
                             onChange={e => setSearch(e.target.value)}
-                            placeholder="🔍 Search player..."
-                            className="w-full bg-bg-primary border border-border-subtle rounded-xl px-4 py-2 text-sm text-text-primary placeholder-text-muted focus:border-cyan focus:outline-none transition-colors"
+                            placeholder="Search player..."
+                            className="w-full bg-bg-primary border border-border-subtle rounded-xl pl-9 pr-4 py-2 text-sm text-text-primary placeholder-text-muted focus:border-cyan focus:outline-none transition-colors"
                         />
                     </div>
                 </motion.div>

@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Cell, Tooltip } from 'recharts';
+import { FiBarChart2, FiTarget, FiZap, FiClock, FiShield, FiFileText } from 'react-icons/fi';
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } };
 const stagger = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.1 } } };
@@ -14,17 +15,17 @@ const recencyData = [
 
 const pillars = [
     {
-        icon: '📊', title: 'Performance Score', color: '#00E5FF', max: '0–40',
+        Icon: FiBarChart2, title: 'Performance Score', color: '#00E5FF', max: '0–40',
         inputs: ['Runs scored', 'Strike rate vs format avg', 'Wickets taken (bowlers)', 'Economy rate (bowlers)'],
         formula: 'P = runs × 0.6 × 0.3 + max(0, (SR − 100) × 0.15)',
     },
     {
-        icon: '🎯', title: 'Context Multiplier', color: '#F0B429', max: '0.7× to 1.5×',
+        Icon: FiTarget, title: 'Context Multiplier', color: '#F0B429', max: '0.7× to 1.5×',
         inputs: ['Match phase (PP/Middle/Death)', 'Chase scenario & RRR', 'Wickets fallen', 'Match importance'],
         formula: 'C = phase_base + chase_bonus + wicket_pressure',
     },
     {
-        icon: '⚡', title: 'Pressure Index', color: '#F7645A', max: '0–25',
+        Icon: FiZap, title: 'Pressure Index', color: '#F7645A', max: '0–25',
         inputs: ['Pressure level (Low→Extreme)', 'Knockout multiplier (1.3×)', 'Opposition ranking', 'Tournament stage'],
         formula: 'Pr = pressure × 20 × knockout_mult',
     },
@@ -51,7 +52,9 @@ export default function Methodology() {
             <div className="max-w-4xl mx-auto px-4">
                 {/* Header */}
                 <motion.div variants={fadeUp} initial="hidden" animate="show" className="mb-12">
-                    <p className="text-cyan text-xs tracking-[0.3em] uppercase font-semibold mb-3">📄 Whitepaper</p>
+                    <p className="text-cyan text-xs tracking-[0.3em] uppercase font-semibold mb-3 flex items-center gap-2">
+                        <FiFileText className="text-sm" /> Whitepaper
+                    </p>
                     <h1 className="font-display text-5xl text-text-primary mb-4">Methodology & Science</h1>
                     <p className="text-text-secondary leading-relaxed">
                         The mathematics behind the Impact Metric (IM). We strip away the noise of traditional averages
@@ -82,7 +85,7 @@ export default function Methodology() {
                 {/* Three Pillars */}
                 <motion.section variants={stagger} initial="hidden" animate="show" className="mb-16">
                     <h2 className="font-display text-3xl text-text-primary mb-6 flex items-center gap-2">
-                        <span className="text-gold">⚙️</span> The Three Pillars
+                        <span className="text-gold"><FiZap className="inline" /></span> The Three Pillars
                     </h2>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         {pillars.map(p => (
@@ -92,7 +95,7 @@ export default function Methodology() {
                                 className="bg-bg-card border border-border-subtle rounded-2xl p-5 hover:border-opacity-60 transition-all"
                                 style={{ borderTopColor: p.color, borderTopWidth: '3px' }}
                             >
-                                <span className="text-2xl">{p.icon}</span>
+                                <p.Icon className="text-2xl" style={{ color: p.color }} />
                                 <h3 className="font-semibold text-text-primary mt-2 text-sm">{p.title}</h3>
                                 <p className="text-text-muted text-xs mb-3">Range: {p.max}</p>
                                 <ul className="text-text-secondary text-xs space-y-1 mb-3">
@@ -113,7 +116,7 @@ export default function Methodology() {
                 {/* Recency Weight */}
                 <motion.section variants={fadeUp} initial="hidden" animate="show" className="mb-16">
                     <h2 className="font-display text-3xl text-text-primary mb-6 flex items-center gap-2">
-                        <span className="text-green">⏱</span> Recency Weighting
+                        <FiClock className="text-green" /> Recency Weighting
                     </h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
                         <div>
@@ -158,7 +161,7 @@ export default function Methodology() {
                 {/* Non-Gameability */}
                 <motion.section variants={stagger} initial="hidden" animate="show" className="mb-16">
                     <h2 className="font-display text-3xl text-text-primary mb-6 flex items-center gap-2">
-                        <span className="text-violet">🛡</span> Non-Gameability Guarantees
+                        <FiShield className="text-violet" /> Non-Gameability Guarantees
                     </h2>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         {scenarios.map(s => (
@@ -175,7 +178,7 @@ export default function Methodology() {
                 {/* Assumptions */}
                 <motion.section variants={fadeUp} initial="hidden" animate="show">
                     <h2 className="font-display text-3xl text-text-primary mb-6 flex items-center gap-2">
-                        <span className="text-amber">📋</span> Design Assumptions
+                        <FiFileText className="text-amber" /> Design Assumptions
                     </h2>
                     <div className="bg-bg-card border border-border-subtle rounded-2xl overflow-hidden">
                         <table className="w-full text-sm">

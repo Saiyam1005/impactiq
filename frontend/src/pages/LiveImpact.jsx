@@ -1,5 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { FiZap, FiActivity, FiBarChart2 } from 'react-icons/fi';
+import { LuFlask, LuRadio } from 'react-icons/lu';
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } };
 

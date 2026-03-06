@@ -6,6 +6,8 @@ import { playersData, getCompareData } from '../data/staticData';
 import GaugeMeter from '../components/GaugeMeter';
 import RadarChart from '../components/RadarChart';
 import { getScoreColor } from '../utils/imCalculator';
+import { HiOutlineCpuChip } from 'react-icons/hi2';
+import { FiZap } from 'react-icons/fi';
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } };
 
@@ -50,7 +52,7 @@ export default function HeadToHead() {
     useEffect(() => {
         if (!p1Id || !p2Id) return;
         setLoading(true);
-        toast(`⚡ Comparing players...`, {
+        toast('Analyzing & comparing impact metrics...', {
             style: { background: '#0D1526', color: '#F0F4FF', border: '1px solid #00E5FF', fontFamily: 'DM Sans' },
             duration: 2000,
         });
@@ -181,7 +183,7 @@ export default function HeadToHead() {
                             className="bg-bg-card border border-border-subtle rounded-2xl p-6 border-l-4 border-l-cyan"
                         >
                             <h3 className="text-cyan font-semibold text-base mb-2 flex items-center gap-2">
-                                🤖 AI Insight
+                                <HiOutlineCpuChip className="text-lg" /> AI Insight
                             </h3>
                             <p className="text-text-secondary leading-relaxed">
                                 {p1.im_score > p2.im_score ? (
