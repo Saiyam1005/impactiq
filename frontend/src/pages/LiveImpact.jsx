@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiZap, FiActivity, FiBarChart2 } from 'react-icons/fi';
-import { LuFlask, LuRadio } from 'react-icons/lu';
+import { LuFlaskConical, LuRadio } from 'react-icons/lu';
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } };
 
@@ -378,7 +378,7 @@ export default function LiveImpact() {
                             className="bg-bg-card border border-border-subtle rounded-2xl p-5"
                         >
                             <h3 className="text-text-primary font-semibold text-sm mb-4 flex items-center gap-2">
-                                <LuFlask className="text-violet" /> Bowling Strategy Simulator
+                                <LuFlaskConical className="text-violet" /> Bowling Strategy Simulator
                             </h3>
                             <p className="text-xs text-text-muted mb-4 border-b border-border-subtle pb-3">Test hypothesis: How would the bowling attack's impact change?</p>
 
