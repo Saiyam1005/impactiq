@@ -5,6 +5,9 @@ import { LuFlask, LuRadio } from 'react-icons/lu';
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } };
 
+const bowlerNames = { bumrah: 'Bumrah', siraj: 'Siraj', jadeja: 'Jadeja' };
+const bowlerOrder = ['bumrah', 'siraj', 'jadeja'];
+
 export default function LiveImpact() {
     const [runsSlider, setRunsSlider] = useState(20);
     const [wicketsSlider, setWicketsSlider] = useState(0);
@@ -18,9 +21,12 @@ export default function LiveImpact() {
         ballsLeft: 21,
         target: 188,
         striker: 'Maxwell',
+        currentBowler: 'bumrah',
         maxwell: { runs: 45, balls: 24, im: 88.5 },
         david: { runs: 12, balls: 8, im: 72.1 },
-        bumrah: { runs: 22, balls: 21, wickets: 3, im: 94.2 },
+        bumrah: { runs: 22, balls: 18, wickets: 3, im: 94.2 },
+        siraj: { runs: 31, balls: 18, wickets: 1, im: 68.7 },
+        jadeja: { runs: 24, balls: 24, wickets: 2, im: 76.3 },
         kohli: { runs: 72, balls: 48, im: 85.4 },
         log: "Bumrah is at the top of his mark. 21 balls, 54 to win.",
     });
@@ -49,35 +55,39 @@ export default function LiveImpact() {
 
                 const strikerKey = prev.striker === 'Maxwell' ? 'maxwell' : 'david';
                 const nonStrikerKey = prev.striker === 'Maxwell' ? 'david' : 'maxwell';
+                const curBowler = prev.currentBowler;
+                const curBowlerName = bowlerNames[curBowler];
 
                 const overNum = 19 - Math.floor(newBallsLeft / 6);
                 const ballNum = 6 - (newBallsLeft % 6 === 0 ? 0 : newBallsLeft % 6);
-                let logMsg = `Ball ${Math.max(16, overNum)}.${ballNum === 0 ? 6 : ballNum}: `;
+                let logMsg = `${Math.max(16, overNum)}.${ballNum === 0 ? 6 : ballNum} ${curBowlerName} to ${prev.striker}: `;
 
-                if (isWicket) logMsg += "OUT! Clean bowled by Bumrah. Brilliant delivery!";
-                else if (runs === 4) logMsg += "FOUR! Swept away elegantly.";
-                else if (runs === 6) logMsg += "SIX! Massive hit into the stands.";
-                else if (runs === 0) logMsg += "Dot ball. Excellent variation.";
+                if (isWicket) logMsg += `OUT! Clean bowled by ${curBowlerName}! Brilliant delivery!`;
+                else if (runs === 4) logMsg += "FOUR! Driven beautifully through the covers.";
+                else if (runs === 6) logMsg += "SIX! Massive hit into the stands!";
+                else if (runs === 0) logMsg += `Dot ball. Tight from ${curBowlerName}.`;
                 else logMsg += `${runs} run${runs > 1 ? 's' : ''} taken.`;
 
+                // Update striker
                 const newStrikerData = { ...prev[strikerKey], balls: prev[strikerKey].balls + 1 };
                 if (!isWicket) newStrikerData.runs += runs;
-
                 if (isWicket) {
                     newStrikerData.im = Math.max(0, newStrikerData.im - 8);
                 } else {
                     newStrikerData.im += (runs === 6 ? 2.5 : runs === 4 ? 1.2 : runs === 1 ? 0 : -0.5);
                 }
 
-                const newBumrah = { ...prev.bumrah, balls: prev.bumrah.balls + 1 };
-                newBumrah.runs += runs;
+                // Update current bowler
+                const newBowlerData = { ...prev[curBowler], balls: prev[curBowler].balls + 1 };
+                newBowlerData.runs += runs;
                 if (isWicket) {
-                    newBumrah.wickets += 1;
-                    newBumrah.im += 6.5;
+                    newBowlerData.wickets += 1;
+                    newBowlerData.im += 6.5;
                 } else {
-                    newBumrah.im -= (runs >= 4 ? 1.8 : -0.2);
+                    newBowlerData.im -= (runs >= 4 ? 1.8 : -0.2);
                 }
 
+                // Rotate strike
                 let nextStriker = prev.striker;
                 if (isWicket) {
                     newStrikerData.runs = 0;
@@ -87,8 +97,14 @@ export default function LiveImpact() {
                 } else if (runs % 2 !== 0) {
                     nextStriker = nonStrikerKey === 'maxwell' ? 'Maxwell' : 'David';
                 }
+
+                // Rotate bowler at end of over
+                let nextBowler = prev.currentBowler;
                 if (newBallsLeft % 6 === 0 && newBallsLeft > 0) {
                     nextStriker = nextStriker === 'Maxwell' ? 'David' : 'Maxwell';
+                    const currentIdx = bowlerOrder.indexOf(prev.currentBowler);
+                    nextBowler = bowlerOrder[(currentIdx + 1) % bowlerOrder.length];
+                    logMsg += ` End of over. ${bowlerNames[nextBowler]} to bowl next.`;
                 }
 
                 if (newAusScore >= prev.target) {
@@ -103,8 +119,9 @@ export default function LiveImpact() {
                     ausWickets: newAusWickets,
                     ballsLeft: newBallsLeft,
                     striker: nextStriker,
+                    currentBowler: nextBowler,
                     [strikerKey]: newStrikerData,
-                    bumrah: newBumrah,
+                    [curBowler]: newBowlerData,
                     log: logMsg
                 };
             });
@@ -114,12 +131,9 @@ export default function LiveImpact() {
     }, [matchState.ballsLeft, matchState.ausScore, matchState.ausWickets]);
 
     // Live Match Calculations
-    const oversBowled = matchState.bumrah.balls;
-    const bumrahOversStr = `${Math.floor(oversBowled / 6)}.${oversBowled % 6}`;
+    const formatOvers = (balls) => `${Math.floor(balls / 6)}.${balls % 6}`;
     const ausOversPlayed = 120 - matchState.ballsLeft;
-    let ballMod = ausOversPlayed % 6;
-    if (ballMod === 0 && ausOversPlayed > 0 && ausOversPlayed !== 120) ballMod = 0; // Fix edge cases later if needed
-    const ausOversStr = `${Math.floor(ausOversPlayed / 6)}.${ausOversPlayed % 6}`;
+    const ausOversStr = formatOvers(ausOversPlayed);
 
     const reqRuns = matchState.target - matchState.ausScore;
     const isMatchOver = matchState.ballsLeft <= 0 || matchState.ausScore >= matchState.target || matchState.ausWickets >= 10;
@@ -145,11 +159,27 @@ export default function LiveImpact() {
         },
         {
             name: 'Jasprit Bumrah',
-            contribution: `${matchState.bumrah.wickets}/${matchState.bumrah.runs} (${bumrahOversStr} ov)`,
+            contribution: `${matchState.bumrah.wickets}/${matchState.bumrah.runs} (${formatOvers(matchState.bumrah.balls)} ov)`,
             projectedIM: matchState.bumrah.im.toFixed(1),
-            status: isMatchOver ? 'Done' : 'Bowling',
-            statusIcon: isMatchOver ? '✓' : '🔴',
-            statusColor: isMatchOver ? '#00D68F' : '#F7645A'
+            status: isMatchOver ? 'Done' : matchState.currentBowler === 'bumrah' ? 'Bowling' : 'Resting',
+            statusIcon: isMatchOver ? '✓' : matchState.currentBowler === 'bumrah' ? '🔴' : '⏸',
+            statusColor: isMatchOver ? '#00D68F' : matchState.currentBowler === 'bumrah' ? '#F7645A' : '#4A5E7A'
+        },
+        {
+            name: 'Mohammed Siraj',
+            contribution: `${matchState.siraj.wickets}/${matchState.siraj.runs} (${formatOvers(matchState.siraj.balls)} ov)`,
+            projectedIM: matchState.siraj.im.toFixed(1),
+            status: isMatchOver ? 'Done' : matchState.currentBowler === 'siraj' ? 'Bowling' : 'Resting',
+            statusIcon: isMatchOver ? '✓' : matchState.currentBowler === 'siraj' ? '🔴' : '⏸',
+            statusColor: isMatchOver ? '#00D68F' : matchState.currentBowler === 'siraj' ? '#F7645A' : '#4A5E7A'
+        },
+        {
+            name: 'Ravindra Jadeja',
+            contribution: `${matchState.jadeja.wickets}/${matchState.jadeja.runs} (${formatOvers(matchState.jadeja.balls)} ov)`,
+            projectedIM: matchState.jadeja.im.toFixed(1),
+            status: isMatchOver ? 'Done' : matchState.currentBowler === 'jadeja' ? 'Bowling' : 'Resting',
+            statusIcon: isMatchOver ? '✓' : matchState.currentBowler === 'jadeja' ? '🔴' : '⏸',
+            statusColor: isMatchOver ? '#00D68F' : matchState.currentBowler === 'jadeja' ? '#F7645A' : '#4A5E7A'
         },
         {
             name: 'Virat Kohli',
@@ -171,10 +201,10 @@ export default function LiveImpact() {
             bumrahColor: imDelta > 0 ? '#00D68F' : '#F7645A',
             pressureIndex: pressureIdx,
             recommendation: wicketsSlider >= 2
-                ? "High-risk situation. Bumrah's death-overs expertise critical — bowl him in 18th and 20th."
+                ? "High-risk situation. Rotate between Bumrah and Siraj for pace, and use Jadeja's spin to slow momentum."
                 : runsSlider > 40
-                    ? "Batting team in control. Spread bowling resources — save Bumrah for key moments."
-                    : "Bumrah should bowl the death overs for maximum impact. Pressure scenario favors his skill set.",
+                    ? "Batting team in control. Bring Jadeja to vary the pace and save Bumrah for the final over."
+                    : "Bumrah should bowl the death overs. Use Siraj in the 18th and Jadeja as the surprise option in the 19th.",
         };
     }, [runsSlider, wicketsSlider, isKnockout]);
 
@@ -193,7 +223,7 @@ export default function LiveImpact() {
                         {isMatchOver ? 'MATCH COMPLETED' : 'LIVE MATCH MODE'}
                     </span>
                     <span className="text-text-muted text-xs ml-auto">
-                        {isMatchOver ? 'Final statistics' : 'Auto-updating every ball'}
+                        {isMatchOver ? 'Final statistics' : `Bowling: ${bowlerNames[matchState.currentBowler]} · Auto-updating every ball`}
                     </span>
                 </div>
             </div>
@@ -254,7 +284,7 @@ export default function LiveImpact() {
                         >
                             <div className="px-5 py-4 border-b border-border-subtle">
                                 <h3 className="text-text-primary font-semibold flex items-center gap-2">
-                                    📊 Real-Time Impact Metric Updates
+                                    <FiBarChart2 className="text-cyan" /> Real-Time Impact Metric Updates
                                 </h3>
                             </div>
                             <div className="overflow-x-auto">
@@ -310,7 +340,9 @@ export default function LiveImpact() {
                         <motion.div variants={fadeUp} initial="hidden" animate="show" transition={{ delay: 0.15 }}
                             className="bg-bg-card border border-border-subtle rounded-2xl p-5"
                         >
-                            <h3 className="text-text-primary font-semibold text-sm mb-4">⚡ Live Match Pressure</h3>
+                            <h3 className="text-text-primary font-semibold text-sm mb-4 flex items-center gap-2">
+                                <FiZap className="text-amber" /> Live Match Pressure
+                            </h3>
                             <div className="flex flex-col items-center">
                                 <div className="relative w-28 h-48 bg-bg-primary rounded-xl border border-border-subtle overflow-hidden">
                                     <div
@@ -336,6 +368,7 @@ export default function LiveImpact() {
                                     <div className="flex justify-between"><span>RRR Deficit</span><span className={rrr > 10 ? 'text-red' : 'text-amber'}>{isMatchOver ? '-' : rrr}</span></div>
                                     <div className="flex justify-between"><span>Wickets Lost</span><span className="text-amber">{matchState.ausWickets}</span></div>
                                     <div className="flex justify-between"><span>Balls Left</span><span className="text-cyan">{matchState.ballsLeft}</span></div>
+                                    <div className="flex justify-between"><span>Current Bowler</span><span className="text-cyan">{bowlerNames[matchState.currentBowler]}</span></div>
                                 </div>
                             </div>
                         </motion.div>
@@ -344,13 +377,15 @@ export default function LiveImpact() {
                         <motion.div variants={fadeUp} initial="hidden" animate="show" transition={{ delay: 0.2 }}
                             className="bg-bg-card border border-border-subtle rounded-2xl p-5"
                         >
-                            <h3 className="text-text-primary font-semibold text-sm mb-4">🧪 What-If Simulator</h3>
-                            <p className="text-xs text-text-muted mb-4 border-b border-border-subtle pb-3">Test hypothesis: How would Bumrah's impact change over his remaining spell?</p>
+                            <h3 className="text-text-primary font-semibold text-sm mb-4 flex items-center gap-2">
+                                <LuFlask className="text-violet" /> Bowling Strategy Simulator
+                            </h3>
+                            <p className="text-xs text-text-muted mb-4 border-b border-border-subtle pb-3">Test hypothesis: How would the bowling attack's impact change?</p>
 
                             {/* Slider 1: Runs */}
                             <div className="mb-4">
                                 <div className="flex justify-between text-xs mb-1.5">
-                                    <span className="text-text-secondary">Concedes runs</span>
+                                    <span className="text-text-secondary">Runs conceded</span>
                                     <span className="text-cyan font-bold">{runsSlider}</span>
                                 </div>
                                 <input
@@ -363,7 +398,7 @@ export default function LiveImpact() {
                             {/* Slider 2: Wickets */}
                             <div className="mb-4">
                                 <div className="flex justify-between text-xs mb-1.5">
-                                    <span className="text-text-secondary">Takes wickets</span>
+                                    <span className="text-text-secondary">Wickets taken</span>
                                     <span className="text-amber font-bold">{wicketsSlider}</span>
                                 </div>
                                 <input
@@ -378,7 +413,7 @@ export default function LiveImpact() {
                                 <p className="text-text-muted text-xs mb-3">Predicted Outcome:</p>
                                 <div className="space-y-2">
                                     <div className="flex justify-between items-center">
-                                        <span className="text-text-secondary text-xs">Bumrah's IM Delta</span>
+                                        <span className="text-text-secondary text-xs">Bowling Attack IM Delta</span>
                                         <span className="font-display text-xl" style={{ color: simulation.bumrahColor }}>
                                             {simulation.bumrahDelta}
                                         </span>
