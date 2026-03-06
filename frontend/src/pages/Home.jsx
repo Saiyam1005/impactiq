@@ -45,10 +45,6 @@ export default function Home() {
     const globalAvgIM = playersData.reduce((acc, p) => acc + p.im_score, 0) / (playersData.length || 1);
 
     useEffect(() => {
-        toast('📊 Scores updated after IND vs AUS · Nov 24', {
-            style: { background: '#0D1526', color: '#F0F4FF', border: '1px solid #00E5FF', fontFamily: 'DM Sans' },
-            duration: 4000,
-        });
         axios.get('/api/leaderboard')
             .then(res => setPlayers(res.data.slice(0, 10)))
             .catch(() => setPlayers(getLeaderboard().slice(0, 10)))
