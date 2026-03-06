@@ -160,8 +160,8 @@ export default function LiveImpact() {
     // Identify current batters
     const fowsTillNow = activeTeamData.balls.slice(0, ballIndex + 1).filter(b => b.isWicket).map(b => b.playerOut);
     const battersData = inning === 'IND'
-        ? ["Rohit Sharma", "Virat Kohli", "Rishabh Pant", "Suryakumar Yadav", "Axar Patel", "Shivam Dube", "Hardik Pandya"]
-        : ["Reeza Hendricks", "Quinton de Kock", "Aiden Markram", "Tristan Stubbs", "Heinrich Klaasen", "David Miller", "Marco Jansen"];
+        ? ["Rohit Sharma", "Virat Kohli", "Rishabh Pant", "Suryakumar Yadav", "Axar Patel", "Shivam Dube", "Hardik Pandya", "Ravindra Jadeja", "Arshdeep Singh", "Jasprit Bumrah", "Kuldeep Yadav"]
+        : ["Reeza Hendricks", "Quinton de Kock", "Aiden Markram", "Tristan Stubbs", "Heinrich Klaasen", "David Miller", "Marco Jansen", "Keshav Maharaj", "Kagiso Rabada", "Anrich Nortje", "Tabraiz Shamsi"];
 
     // Simplistic current batter logic: Top 2 names not in FOW
     const currentBatters = battersData.filter(name => !fowsTillNow.some(fow => fow && fow.includes(name.split(' ')[0]))).slice(0, 2);
@@ -170,6 +170,8 @@ export default function LiveImpact() {
 
     // Dynamic IM approximation for display
     const currentIM = Math.min(100, Math.max(0, (currentBall.totalScore / (oversBowled || 1)) * 5 + (fows.length * -2)));
+
+    const isMatchComplete = inning === 'RSA' && ballIndex === 119;
 
     return (
         <div className="min-h-screen pt-20 pb-20 px-4 relative">
@@ -186,163 +188,212 @@ export default function LiveImpact() {
                         </span>
                     </motion.div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-                        <motion.div variants={fadeUp} className="lg:col-span-2 bg-gradient-to-br from-[#111E33] to-bg-card border border-border-subtle rounded-2xl p-6 lg:p-8 shadow-xl shadow-cyan/5">
-                            <div className="flex justify-between items-start mb-6">
-                                <div>
-                                    <p className="text-text-muted text-xs uppercase tracking-widest mb-2 font-semibold flex items-center gap-2">
-                                        <LuSwords /> {inning === 'IND' ? 'India Innings' : 'South Africa Innings'}
-                                    </p>
-                                    <h2 className="font-display text-7xl text-text-primary tabular-nums tracking-tight">
-                                        {currentBall.totalScore} <span className="text-4xl text-text-secondary">/ {currentBall.totalWickets}</span>
-                                    </h2>
-                                    <p className="text-cyan font-medium mt-2 text-xl">Overs: {currentBall.label} <span className="text-sm text-text-secondary ml-1">/ 20.0</span></p>
-                                </div>
-                                <div className="text-right">
-                                    {inning === 'IND' ? (
-                                        <p className="text-text-muted text-xs uppercase tracking-widest mb-1">1st Innings</p>
-                                    ) : (
-                                        <p className="text-text-muted text-xs uppercase tracking-widest mb-1">To Win: {reqRuns}</p>
-                                    )}
-                                    <p className="font-display text-4xl text-text-primary">
-                                        {inning === 'IND' ? '-' : reqRuns}
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div className={`bg-bg-primary/50 text-center py-4 rounded-xl border border-border-subtle mb-6 transition-all duration-300 ${currentBall.isWicket ? 'shadow-lg shadow-red/10 border-red/30' : currentBall.runs === 6 ? 'shadow-lg shadow-amber/10 border-amber/30' : ''}`}>
-                                <span className={`text-lg font-medium ${currentBall.isWicket ? 'text-red' : currentBall.runs === 6 ? 'text-amber' : currentBall.runs === 4 ? 'text-cyan' : 'text-text-primary'}`}>
-                                    {currentBall.label} — {eventText}
-                                </span>
-                            </div>
-
-                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
-                                <div className="bg-bg-primary/50 rounded-xl p-4 border border-border-subtle">
-                                    <p className="text-text-muted text-[10px] uppercase mb-1 font-semibold">Current Run Rate</p>
-                                    <p className="font-display text-xl text-text-primary">{crr}</p>
-                                </div>
-                                <div className="bg-bg-primary/50 flex-1 rounded-xl p-4 border border-border-subtle">
-                                    <p className="text-text-muted text-[10px] uppercase mb-1 font-semibold">Required Rate</p>
-                                    <p className="font-display text-xl text-text-primary">{rrr}</p>
-                                </div>
-                                <div className="bg-bg-primary/50 flex-1 rounded-xl p-4 border border-border-subtle">
-                                    <p className="text-text-muted text-[10px] uppercase mb-1 font-semibold">Runs in Over</p>
-                                    <p className="font-display text-xl text-text-primary">{runsInOver}</p>
-                                </div>
-                                <div className="bg-bg-primary/50 flex-1 rounded-xl p-4 border border-border-subtle">
-                                    <p className="text-text-muted text-[10px] uppercase mb-1 font-semibold">Momentum</p>
-                                    <div className="flex items-center gap-2">
-                                        <FiTrendingUp className={currentBall.isWicket ? "text-red" : currentBall.runs >= 4 ? "text-cyan" : "text-amber"} />
-                                        <span className="font-bold text-sm text-text-primary">
-                                            {currentBall.isWicket ? 'Bowling' : currentBall.runs >= 4 ? 'Batting' : 'Steady'}
-                                        </span>
+                    {!isMatchComplete ? (
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                            <motion.div variants={fadeUp} className="lg:col-span-2 bg-gradient-to-br from-[#111E33] to-bg-card border border-border-subtle rounded-2xl p-6 lg:p-8 shadow-xl shadow-cyan/5">
+                                <div className="flex justify-between items-start mb-6">
+                                    <div>
+                                        <p className="text-text-muted text-xs uppercase tracking-widest mb-2 font-semibold flex items-center gap-2">
+                                            <LuSwords /> {inning === 'IND' ? 'India Innings' : 'South Africa Innings'}
+                                        </p>
+                                        <h2 className="font-display text-7xl text-text-primary tabular-nums tracking-tight">
+                                            {currentBall.totalScore} <span className="text-4xl text-text-secondary">/ {currentBall.totalWickets}</span>
+                                        </h2>
+                                        <p className="text-cyan font-medium mt-2 text-xl">Overs: {currentBall.label} <span className="text-sm text-text-secondary ml-1">/ 20.0</span></p>
+                                    </div>
+                                    <div className="text-right">
+                                        {inning === 'IND' ? (
+                                            <p className="text-text-muted text-xs uppercase tracking-widest mb-1">1st Innings</p>
+                                        ) : (
+                                            <p className="text-text-muted text-xs uppercase tracking-widest mb-1">To Win: {reqRuns}</p>
+                                        )}
+                                        <p className="font-display text-4xl text-text-primary">
+                                            {inning === 'IND' ? '-' : reqRuns}
+                                        </p>
                                     </div>
                                 </div>
-                            </div>
 
-                            <div className="border-t border-border-subtle pt-4 min-h-[80px]">
-                                <p className="text-text-muted text-xs font-medium mb-3">Fall of Wickets so far:</p>
-                                <div className="flex flex-wrap gap-2">
-                                    {fows.length === 0 ? <span className="text-text-secondary text-sm">None</span> : null}
-                                    {fows.map((f, i) => (
-                                        <span key={i} className="px-2 py-1 bg-red/10 border border-red/20 text-red text-xs rounded-md">
-                                            {f.totalScore}-{i + 1} ({f.playerOut})
-                                        </span>
-                                    ))}
+                                <div className={`bg-bg-primary/50 text-center py-4 rounded-xl border border-border-subtle mb-6 transition-all duration-300 ${currentBall.isWicket ? 'shadow-lg shadow-red/10 border-red/30' : currentBall.runs === 6 ? 'shadow-lg shadow-amber/10 border-amber/30' : ''}`}>
+                                    <span className={`text-lg font-medium ${currentBall.isWicket ? 'text-red' : currentBall.runs === 6 ? 'text-amber' : currentBall.runs === 4 ? 'text-cyan' : 'text-text-primary'}`}>
+                                        {currentBall.label} — {eventText}
+                                    </span>
                                 </div>
-                            </div>
-                        </motion.div>
 
-                        <div className="flex flex-col gap-6">
-                            <motion.div variants={fadeUp} className="bg-bg-card border border-border-subtle rounded-2xl p-6 shadow-lg shadow-cyan/5">
-                                <h3 className="font-display text-lg text-text-primary mb-4 flex items-center justify-between border-b border-border-subtle pb-3">
-                                    <span className="flex items-center gap-2"><FiZap className="text-gold" /> Live Scoreboard</span>
-                                </h3>
-
-                                <div className="mb-4">
-                                    <p className="text-[10px] uppercase tracking-widest text-text-muted font-bold mb-2">Batting</p>
-                                    <div className="flex items-center justify-between bg-bg-primary p-3 rounded-lg border border-cyan/30 shadow-[0_0_10px_rgba(0,229,255,0.1)] mb-2">
+                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+                                    <div className="bg-bg-primary/50 rounded-xl p-4 border border-border-subtle">
+                                        <p className="text-text-muted text-[10px] uppercase mb-1 font-semibold">Current Run Rate</p>
+                                        <p className="font-display text-xl text-text-primary">{crr}</p>
+                                    </div>
+                                    <div className="bg-bg-primary/50 flex-1 rounded-xl p-4 border border-border-subtle">
+                                        <p className="text-text-muted text-[10px] uppercase mb-1 font-semibold">Required Rate</p>
+                                        <p className="font-display text-xl text-text-primary">{rrr}</p>
+                                    </div>
+                                    <div className="bg-bg-primary/50 flex-1 rounded-xl p-4 border border-border-subtle">
+                                        <p className="text-text-muted text-[10px] uppercase mb-1 font-semibold">Runs in Over</p>
+                                        <p className="font-display text-xl text-text-primary">{runsInOver}</p>
+                                    </div>
+                                    <div className="bg-bg-primary/50 flex-1 rounded-xl p-4 border border-border-subtle">
+                                        <p className="text-text-muted text-[10px] uppercase mb-1 font-semibold">Momentum</p>
                                         <div className="flex items-center gap-2">
-                                            <span className="text-lg">🏏</span>
-                                            <span className="font-display text-text-primary">{striker} <span className="text-cyan">*</span></span>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center justify-between bg-bg-primary p-3 rounded-lg border border-border-subtle">
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-lg opacity-50">🏃</span>
-                                            <span className="font-display text-text-secondary">{nonStriker}</span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <p className="text-[10px] uppercase tracking-widest text-text-muted font-bold mb-2">Bowling</p>
-                                    <div className="flex items-center justify-between bg-bg-primary p-3 rounded-lg border border-red/30 shadow-[0_0_10px_rgba(247,100,90,0.1)]">
-                                        <div className="flex items-center gap-3">
-                                            <span className="text-lg">⚾</span>
-                                            <span className="font-display text-text-primary flex flex-col items-start leading-tight">
-                                                <span>{activeBowler} *</span>
-                                                <span className="text-text-muted text-[10px] font-sans font-normal tracking-wide mt-0.5">{bowlerOverString} Overs</span>
+                                            <FiTrendingUp className={currentBall.isWicket ? "text-red" : currentBall.runs >= 4 ? "text-cyan" : "text-amber"} />
+                                            <span className="font-bold text-sm text-text-primary">
+                                                {currentBall.isWicket ? 'Bowling' : currentBall.runs >= 4 ? 'Batting' : 'Steady'}
                                             </span>
                                         </div>
                                     </div>
                                 </div>
+
+                                <div className="border-t border-border-subtle pt-4 min-h-[80px]">
+                                    <p className="text-text-muted text-xs font-medium mb-3">Fall of Wickets so far:</p>
+                                    <div className="flex flex-wrap gap-2">
+                                        {fows.length === 0 ? <span className="text-text-secondary text-sm">None</span> : null}
+                                        {fows.map((f, i) => (
+                                            <span key={i} className="px-2 py-1 bg-red/10 border border-red/20 text-red text-xs rounded-md">
+                                                {f.totalScore}-{i + 1} ({f.playerOut})
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
                             </motion.div>
 
-                            <AnimatePresence mode="popLayout">
-                                {isTurningPoint ? (
-                                    <motion.div
-                                        initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                                        animate={{ opacity: 1, scale: 1, y: 0 }}
-                                        exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                                        className="bg-gradient-to-br from-[#2D1A1A] to-bg-card border border-red/50 rounded-2xl p-6 shadow-[0_0_20px_rgba(247,100,90,0.2)] flex flex-col items-center text-center relative overflow-hidden"
-                                    >
-                                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-red to-transparent animate-pulse" />
-                                        <FiActivity className="text-red text-4xl mb-3 animate-bounce" />
-                                        <h3 className="font-display text-xl text-text-primary mb-2">MATCH TURNING POINT!</h3>
-                                        <p className="text-red font-medium text-sm leading-relaxed">{turningPointText}</p>
-                                    </motion.div>
-                                ) : (
-                                    <motion.div
-                                        initial={{ opacity: 0 }}
-                                        animate={{ opacity: 1 }}
-                                        exit={{ opacity: 0 }}
-                                        className="bg-bg-card border border-border-subtle rounded-2xl p-6 shadow-lg shadow-cyan/5 flex flex-col items-center justify-center text-center"
-                                    >
-                                        <h3 className="font-display text-xl text-text-primary mb-2 flex items-center justify-center gap-2 w-full">
-                                            <FiZap className="text-gold text-lg" /> Team Impact Tracker
-                                        </h3>
-                                        <p className="text-text-muted text-xs mb-8">Real-time overall impact shift based on match state</p>
+                            <div className="flex flex-col gap-6">
+                                <motion.div variants={fadeUp} className="bg-bg-card border border-border-subtle rounded-2xl p-6 shadow-lg shadow-cyan/5">
+                                    <h3 className="font-display text-lg text-text-primary mb-4 flex items-center justify-between border-b border-border-subtle pb-3">
+                                        <span className="flex items-center gap-2"><FiZap className="text-gold" /> Live Scoreboard</span>
+                                    </h3>
 
-                                        <div className="relative w-40 h-40 mb-6 flex-shrink-0">
-                                            <svg viewBox="0 0 100 100" className="w-full h-full transform -rotate-90">
-                                                <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="10" />
-                                                <circle
-                                                    cx="50" cy="50" r="45" fill="none"
-                                                    stroke={currentIM > 50 ? "#00E5FF" : "#F7645A"}
-                                                    strokeWidth="10"
-                                                    strokeDasharray="282.7"
-                                                    strokeDashoffset={282.7 - (282.7 * currentIM) / 100}
-                                                    strokeLinecap="round"
-                                                    className="transition-all duration-1000 ease-out"
-                                                />
-                                            </svg>
-                                            <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                                <span className="font-display text-4xl text-text-primary">{Math.round(currentIM)}</span>
-                                                <span className="text-[10px] text-text-muted uppercase font-bold tracking-widest mt-1">Impact Pt</span>
+                                    <div className="mb-4">
+                                        <p className="text-[10px] uppercase tracking-widest text-text-muted font-bold mb-2">Batting</p>
+                                        <div className="flex items-center justify-between bg-bg-primary p-3 rounded-lg border border-cyan/30 shadow-[0_0_10px_rgba(0,229,255,0.1)] mb-2">
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-lg">🏏</span>
+                                                <span className="font-display text-text-primary">{striker} <span className="text-cyan">*</span></span>
                                             </div>
                                         </div>
-
-                                        <div className="w-full bg-bg-primary rounded-xl p-4 border border-border-subtle">
-                                            <p className="text-text-secondary text-sm">
-                                                {inning === 'IND' ? 'India building the total' : 'South Africa chasing the target'}
-                                            </p>
+                                        <div className="flex items-center justify-between bg-bg-primary p-3 rounded-lg border border-border-subtle">
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-lg opacity-50">🏃</span>
+                                                <span className="font-display text-text-secondary">{nonStriker}</span>
+                                            </div>
                                         </div>
-                                    </motion.div>
-                                )}
-                            </AnimatePresence>
+                                    </div>
+
+                                    <div>
+                                        <p className="text-[10px] uppercase tracking-widest text-text-muted font-bold mb-2">Bowling</p>
+                                        <div className="flex items-center justify-between bg-bg-primary p-3 rounded-lg border border-red/30 shadow-[0_0_10px_rgba(247,100,90,0.1)]">
+                                            <div className="flex items-center gap-3">
+                                                <span className="text-lg">⚾</span>
+                                                <span className="font-display text-text-primary flex flex-col items-start leading-tight">
+                                                    <span>{activeBowler} *</span>
+                                                    <span className="text-text-muted text-[10px] font-sans font-normal tracking-wide mt-0.5">{bowlerOverString} Overs</span>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </motion.div>
+
+                                <AnimatePresence mode="popLayout">
+                                    {isTurningPoint ? (
+                                        <motion.div
+                                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                                            className="bg-gradient-to-br from-[#2D1A1A] to-bg-card border border-red/50 rounded-2xl p-6 shadow-[0_0_20px_rgba(247,100,90,0.2)] flex flex-col items-center text-center relative overflow-hidden"
+                                        >
+                                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-red to-transparent animate-pulse" />
+                                            <FiActivity className="text-red text-4xl mb-3 animate-bounce" />
+                                            <h3 className="font-display text-xl text-text-primary mb-2">MATCH TURNING POINT!</h3>
+                                            <p className="text-red font-medium text-sm leading-relaxed">{turningPointText}</p>
+                                        </motion.div>
+                                    ) : (
+                                        <motion.div
+                                            initial={{ opacity: 0 }}
+                                            animate={{ opacity: 1 }}
+                                            exit={{ opacity: 0 }}
+                                            className="bg-bg-card border border-border-subtle rounded-2xl p-6 shadow-lg shadow-cyan/5 flex flex-col items-center justify-center text-center"
+                                        >
+                                            <h3 className="font-display text-xl text-text-primary mb-2 flex items-center justify-center gap-2 w-full">
+                                                <FiZap className="text-gold text-lg" /> Team Impact Tracker
+                                            </h3>
+                                            <p className="text-text-muted text-xs mb-8">Real-time overall impact shift based on match state</p>
+
+                                            <div className="relative w-40 h-40 mb-6 flex-shrink-0">
+                                                <svg viewBox="0 0 100 100" className="w-full h-full transform -rotate-90">
+                                                    <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="10" />
+                                                    <circle
+                                                        cx="50" cy="50" r="45" fill="none"
+                                                        stroke={currentIM > 50 ? "#00E5FF" : "#F7645A"}
+                                                        strokeWidth="10"
+                                                        strokeDasharray="282.7"
+                                                        strokeDashoffset={282.7 - (282.7 * currentIM) / 100}
+                                                        strokeLinecap="round"
+                                                        className="transition-all duration-1000 ease-out"
+                                                    />
+                                                </svg>
+                                                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                                    <span className="font-display text-4xl text-text-primary">{Math.round(currentIM)}</span>
+                                                    <span className="text-[10px] text-text-muted uppercase font-bold tracking-widest mt-1">Impact Pt</span>
+                                                </div>
+                                            </div>
+
+                                            <div className="w-full bg-bg-primary rounded-xl p-4 border border-border-subtle">
+                                                <p className="text-text-secondary text-sm">
+                                                    {inning === 'IND' ? 'India building the total' : 'South Africa chasing the target'}
+                                                </p>
+                                            </div>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+                            </div>
                         </div>
-                    </div>
+                    ) : (
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            className="bg-gradient-to-br from-[#111E33] via-[#1A2E4C] to-bg-card border-2 border-gold/50 rounded-3xl p-8 lg:p-12 shadow-[0_0_50px_rgba(255,215,0,0.2)] text-center relative overflow-hidden mb-8"
+                        >
+                            <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_center,rgba(0,229,255,0.1)_0,transparent_100%)] pointer-events-none" />
+                            <motion.div
+                                initial={{ y: -50, opacity: 0 }}
+                                animate={{ y: 0, opacity: 1 }}
+                                transition={{ delay: 0.5, type: "spring" }}
+                            >
+                                <h2 className="font-display text-5xl md:text-7xl text-gold mb-6 tracking-tight drop-shadow-lg flex justify-center items-center gap-4">
+                                    🏆 INDIA WINS! 🏆
+                                </h2>
+                                <p className="text-xl md:text-2xl text-cyan mb-12">India pulls off a miraculous defense to beat South Africa by 7 runs and win the T20 World Cup 2024.</p>
+                            </motion.div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-left relative z-10">
+                                <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1 }} className="bg-bg-primary border border-border-subtle rounded-2xl p-6 shadow-lg relative overflow-hidden">
+                                    <div className="absolute top-0 right-0 w-16 h-16 bg-gold/10 rounded-bl-full" />
+                                    <h3 className="font-display text-xl text-gold mb-2">🎯 Match Turning Point</h3>
+                                    <p className="text-text-primary font-medium text-lg leading-snug mb-2">The 16th & 17th Overs</p>
+                                    <p className="text-text-secondary text-sm">South Africa needed 30 off 30, but Bumrah's 4-run over and Hardik dismissing Klaasen entirely shifted the momentum back to India.</p>
+                                </motion.div>
+
+                                <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.2 }} className="bg-bg-primary border border-border-subtle rounded-2xl p-6 shadow-lg relative overflow-hidden">
+                                    <div className="absolute top-0 right-0 w-16 h-16 bg-cyan/10 rounded-bl-full" />
+                                    <h3 className="font-display text-xl text-cyan mb-2">⭐ Highest Impact Player</h3>
+                                    <p className="text-text-primary font-medium text-lg leading-snug mb-2">Jasprit Bumrah (2/18)</p>
+                                    <p className="text-text-secondary text-sm">Generated a staggering +45 Impact Score shift in the death overs. Stifled the chase when it was getting away.</p>
+                                </motion.div>
+
+                                <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.4 }} className="bg-bg-primary border border-border-subtle rounded-2xl p-6 shadow-lg relative overflow-hidden">
+                                    <div className="absolute top-0 right-0 w-16 h-16 bg-red/10 rounded-bl-full" />
+                                    <h3 className="font-display text-xl text-red mb-2">🔥 Clutch Moment</h3>
+                                    <p className="text-text-primary font-medium text-lg leading-snug mb-2">SKY's Catch (19.1)</p>
+                                    <p className="text-text-secondary text-sm">David Miller's hit had a 92% probability of a Six. Suryakumar Yadav's boundary-line juggle sealed the victory.</p>
+                                </motion.div>
+                            </div>
+
+                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 2 }} className="mt-12 inline-block relative z-10">
+                                <button onClick={() => { setInning('IND'); setBallIndex(0); setIsPlaying(true); }} className="px-8 py-3 bg-cyan text-bg-primary font-bold rounded-xl shadow-[0_0_20px_rgba(0,229,255,0.4)] hover:shadow-[0_0_30px_rgba(0,229,255,0.6)] transition-all">
+                                    Replay the Final
+                                </button>
+                            </motion.div>
+                        </motion.div>
+                    )}
 
                     {/* Timeline Controls */}
                     <motion.div variants={fadeUp} className="bg-bg-card border border-border-subtle rounded-2xl p-6 relative">
