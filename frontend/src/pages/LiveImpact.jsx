@@ -8,6 +8,15 @@ const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } };
 const bowlerNames = { bumrah: 'Bumrah', siraj: 'Siraj', jadeja: 'Jadeja' };
 const bowlerOrder = ['bumrah', 'siraj', 'jadeja'];
 
+// AUS batting roster (remaining batsmen after the 6th wicket)
+const ausBattingRoster = [
+    { name: 'Cameron Green', short: 'Green' },
+    { name: 'Pat Cummins', short: 'Cummins' },
+    { name: 'Mitchell Starc', short: 'Starc' },
+    { name: 'Adam Zampa', short: 'Zampa' },
+    { name: 'Josh Hazlewood', short: 'Hazlewood' },
+];
+
 export default function LiveImpact() {
     const [runsSlider, setRunsSlider] = useState(20);
     const [wicketsSlider, setWicketsSlider] = useState(0);
@@ -25,10 +34,13 @@ export default function LiveImpact() {
         ausWickets: 6,
         ballsLeft: 21,
         target: 188,
-        striker: 'Maxwell',
+        strikerKey: 'bat1',
+        nonStrikerKey: 'bat2',
         currentBowler: 'bumrah',
-        maxwell: { runs: 45, balls: 24, im: 88.5 },
-        david: { runs: 12, balls: 8, im: 72.1 },
+        nextBatIdx: 0, // index into ausBattingRoster for next new batsman
+        bat1: { name: 'Glenn Maxwell', short: 'Maxwell', runs: 45, balls: 24, im: 88.5, out: false },
+        bat2: { name: 'Tim David', short: 'David', runs: 12, balls: 8, im: 72.1, out: false },
+        dismissed: [], // { name, runs, balls, im, bowler }
         bumrah: { runs: 22, balls: 18, wickets: 3, im: 94.2 },
         siraj: { runs: 31, balls: 18, wickets: 1, im: 68.7 },
         jadeja: { runs: 24, balls: 24, wickets: 2, im: 76.3 },
@@ -58,15 +70,16 @@ export default function LiveImpact() {
                 const newAusWickets = prev.ausWickets + (isWicket ? 1 : 0);
                 const newBallsLeft = prev.ballsLeft - 1;
 
-                const strikerKey = prev.striker === 'Maxwell' ? 'maxwell' : 'david';
-                const nonStrikerKey = prev.striker === 'Maxwell' ? 'david' : 'maxwell';
+                const sKey = prev.strikerKey;
+                const nsKey = prev.nonStrikerKey;
                 const curBowler = prev.currentBowler;
                 const curBowlerName = bowlerNames[curBowler];
+                const strikerName = prev[sKey].short;
 
                 const overNum = 19 - Math.floor(newBallsLeft / 6);
                 const ballNum = 6 - (newBallsLeft % 6 === 0 ? 0 : newBallsLeft % 6);
                 const ballLabel = `${Math.max(16, overNum)}.${ballNum === 0 ? 6 : ballNum}`;
-                let logMsg = `${ballLabel} ${curBowlerName} to ${prev.striker}: `;
+                let logMsg = `${ballLabel} ${curBowlerName} to ${strikerName}: `;
 
                 if (isWicket) logMsg += `OUT! Clean bowled by ${curBowlerName}! Brilliant delivery!`;
                 else if (runs === 4) logMsg += "FOUR! Driven beautifully through the covers.";
@@ -74,8 +87,8 @@ export default function LiveImpact() {
                 else if (runs === 0) logMsg += `Dot ball. Tight from ${curBowlerName}.`;
                 else logMsg += `${runs} run${runs > 1 ? 's' : ''} taken.`;
 
-                // Update striker
-                const newStrikerData = { ...prev[strikerKey], balls: prev[strikerKey].balls + 1 };
+                // Update striker stats
+                const newStrikerData = { ...prev[sKey], balls: prev[sKey].balls + 1 };
                 if (!isWicket) newStrikerData.runs += runs;
                 if (isWicket) {
                     newStrikerData.im = Math.max(0, newStrikerData.im - 8);
@@ -93,21 +106,48 @@ export default function LiveImpact() {
                     newBowlerData.im -= (runs >= 4 ? 1.8 : -0.2);
                 }
 
-                // Rotate strike
-                let nextStriker = prev.striker;
+                // Handle wicket: dismiss striker, bring new batsman
+                let nextStrikerKey = sKey;
+                let nextNonStrikerKey = nsKey;
+                let newDismissed = [...prev.dismissed];
+                let nextBatIdx = prev.nextBatIdx;
+                let newBatEntry = null;
+
                 if (isWicket) {
-                    newStrikerData.runs = 0;
-                    newStrikerData.balls = 0;
-                    newStrikerData.im = 50;
-                    logMsg += ` New batter arrives.`;
+                    // Save dismissed batsman's final stats
+                    newDismissed.push({
+                        name: prev[sKey].name,
+                        short: prev[sKey].short,
+                        runs: prev[sKey].runs,
+                        balls: prev[sKey].balls,
+                        im: prev[sKey].im,
+                        bowler: curBowlerName,
+                    });
+
+                    // Bring in new batsman from roster
+                    if (nextBatIdx < ausBattingRoster.length) {
+                        const newBat = ausBattingRoster[nextBatIdx];
+                        logMsg += ` ${newBat.name} walks in.`;
+                        newBatEntry = { name: newBat.name, short: newBat.short, runs: 0, balls: 0, im: 50, out: false };
+                        nextBatIdx++;
+                    } else {
+                        logMsg += ` All out!`;
+                    }
                 } else if (runs % 2 !== 0) {
-                    nextStriker = nonStrikerKey === 'maxwell' ? 'Maxwell' : 'David';
+                    // Rotate strike on odd runs
+                    nextStrikerKey = nsKey;
+                    nextNonStrikerKey = sKey;
                 }
 
                 // Rotate bowler at end of over
                 let nextBowler = prev.currentBowler;
                 if (newBallsLeft % 6 === 0 && newBallsLeft > 0) {
-                    nextStriker = nextStriker === 'Maxwell' ? 'David' : 'Maxwell';
+                    // Swap ends
+                    if (!isWicket) {
+                        const tempKey = nextStrikerKey;
+                        nextStrikerKey = nextNonStrikerKey;
+                        nextNonStrikerKey = tempKey;
+                    }
                     const currentIdx = bowlerOrder.indexOf(prev.currentBowler);
                     nextBowler = bowlerOrder[(currentIdx + 1) % bowlerOrder.length];
                     logMsg += ` End of over. ${bowlerNames[nextBowler]} to bowl next.`;
@@ -154,17 +194,35 @@ export default function LiveImpact() {
                     return [...mh.slice(-15), newEntry];
                 });
 
-                return {
+                const updates = {
                     ...prev,
                     ausScore: newAusScore,
                     ausWickets: newAusWickets,
                     ballsLeft: newBallsLeft,
-                    striker: nextStriker,
                     currentBowler: nextBowler,
-                    [strikerKey]: newStrikerData,
+                    dismissed: newDismissed,
+                    nextBatIdx,
                     [curBowler]: newBowlerData,
-                    log: logMsg
+                    log: logMsg,
                 };
+
+                if (isWicket && newBatEntry) {
+                    // Replace the dismissed striker slot with new batsman
+                    updates[sKey] = newBatEntry;
+                    updates.strikerKey = sKey;
+                    updates.nonStrikerKey = nsKey;
+                } else if (isWicket) {
+                    // No more batsmen — mark striker as out
+                    updates[sKey] = { ...newStrikerData, out: true };
+                    updates.strikerKey = sKey;
+                    updates.nonStrikerKey = nsKey;
+                } else {
+                    updates[sKey] = newStrikerData;
+                    updates.strikerKey = nextStrikerKey;
+                    updates.nonStrikerKey = nextNonStrikerKey;
+                }
+
+                return updates;
             });
         }, 12000);
 
@@ -181,23 +239,38 @@ export default function LiveImpact() {
     const rrr = isMatchOver || reqRuns <= 0 ? '-' : ((reqRuns / matchState.ballsLeft) * 6).toFixed(1);
     const crr = ((matchState.ausScore / (ausOversPlayed || 1)) * 6).toFixed(1);
 
+    // Build live player table: current batsmen + dismissed + bowlers + Kohli
+    const striker = matchState[matchState.strikerKey];
+    const nonStriker = matchState[matchState.nonStrikerKey];
+
     const livePlayers = [
+        // Current batsmen at crease
         {
-            name: 'Glenn Maxwell',
-            contribution: `${matchState.maxwell.runs} runs (${matchState.maxwell.balls}b)`,
-            projectedIM: matchState.maxwell.im.toFixed(1),
-            status: matchState.striker === 'Maxwell' ? 'Striker' : 'Non-Striker',
-            statusIcon: matchState.striker === 'Maxwell' ? '🏏' : '🧍',
-            statusColor: matchState.striker === 'Maxwell' ? '#00E5FF' : '#00D68F'
+            name: striker.name,
+            contribution: `${striker.runs} runs (${striker.balls}b)`,
+            projectedIM: striker.im.toFixed(1),
+            status: 'Striker',
+            statusIcon: '🏏',
+            statusColor: '#00E5FF',
         },
         {
-            name: 'Tim David',
-            contribution: `${matchState.david.runs} runs (${matchState.david.balls}b)`,
-            projectedIM: matchState.david.im.toFixed(1),
-            status: matchState.striker === 'David' ? 'Striker' : 'Non-Striker',
-            statusIcon: matchState.striker === 'David' ? '🏏' : '🧍',
-            statusColor: matchState.striker === 'David' ? '#00E5FF' : '#00D68F'
+            name: nonStriker.name,
+            contribution: `${nonStriker.runs} runs (${nonStriker.balls}b)`,
+            projectedIM: nonStriker.im.toFixed(1),
+            status: 'Non-Striker',
+            statusIcon: '🧍',
+            statusColor: '#00D68F',
         },
+        // Dismissed batsmen
+        ...matchState.dismissed.map(d => ({
+            name: d.name,
+            contribution: `${d.runs} runs (${d.balls}b)`,
+            projectedIM: d.im.toFixed(1),
+            status: `c ${d.bowler}`,
+            statusIcon: '🔴',
+            statusColor: '#F7645A',
+        })),
+        // Bowlers
         {
             name: 'Jasprit Bumrah',
             contribution: `${matchState.bumrah.wickets}/${matchState.bumrah.runs} (${formatOvers(matchState.bumrah.balls)} ov)`,
@@ -222,6 +295,7 @@ export default function LiveImpact() {
             statusIcon: isMatchOver ? '✓' : matchState.currentBowler === 'jadeja' ? '🔴' : '⏸',
             statusColor: isMatchOver ? '#00D68F' : matchState.currentBowler === 'jadeja' ? '#F7645A' : '#4A5E7A'
         },
+        // Kohli (already batted)
         {
             name: 'Virat Kohli',
             contribution: `${matchState.kohli.runs} runs (${matchState.kohli.balls}b)`,
