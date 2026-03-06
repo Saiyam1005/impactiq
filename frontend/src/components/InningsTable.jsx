@@ -92,9 +92,16 @@ export default function InningsTable({ innings = [], role = 'BAT' }) {
                                     </span>
                                 </td>
                                 <td className="px-4 py-3 text-center">
-                                    <div className="flex flex-col items-center gap-0.5">
-                                        <span className="font-display text-lg text-text-primary">{inn.im_score}</span>
-                                        <IMChip score={inn.im_score} />
+                                    <div className="flex flex-col items-center gap-0.5" title={`Performance (${inn.performance_score}) + Context (${inn.context_score}) + Pressure (${inn.pressure_score})`}>
+                                        <div className="flex items-center gap-2">
+                                            <span className="font-display text-lg text-text-primary">{inn.im_score}</span>
+                                            <IMChip score={inn.im_score} />
+                                        </div>
+                                        <div className="text-[10px] text-text-muted mt-1 flex gap-1 whitespace-nowrap">
+                                            <span title="Performance Score" className="text-[#00E5FF]">P:{inn.performance_score}</span> +
+                                            <span title="Context Score" className="text-[#F0B429]">C:{inn.context_score}</span> +
+                                            <span title="Pressure Index" className="text-[#F7645A]">Pr:{inn.pressure_score}</span>
+                                        </div>
                                     </div>
                                 </td>
                                 <td className="px-4 py-3 text-center text-lg">
