@@ -194,7 +194,7 @@ export default function PlayerProfile() {
                         )}
                         {(tab === 'innings' || tab === 'overview' || window.innerWidth >= 1024) && (
                             <motion.div variants={fadeUp} initial="hidden" animate="show" transition={{ delay: 0.1 }}>
-                                <InningsTable innings={innings} />
+                                <InningsTable innings={innings} role={player.role} />
                             </motion.div>
                         )}
                     </div>
