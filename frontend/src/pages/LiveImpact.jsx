@@ -91,12 +91,12 @@ export default function LiveImpact() {
     // Identify Turning Point
     let isTurningPoint = false;
     let turningPointText = '';
-    
+
     if (inning === 'RSA') {
         const last12Balls = activeTeamData.balls.slice(Math.max(0, ballIndex - 12), ballIndex + 1);
         const wicketsInLast2Overs = last12Balls.filter(b => b.isWicket).length;
         const runsInLast2Overs = last12Balls.reduce((sum, b) => sum + b.runs, 0);
-        
+
         if (wicketsInLast2Overs >= 2) {
             isTurningPoint = true;
             turningPointText = `${wicketsInLast2Overs} wickets fell quickly—India wrests control!`;
@@ -104,7 +104,7 @@ export default function LiveImpact() {
             isTurningPoint = true;
             turningPointText = `${runsInLast2Overs} runs in last 12 balls—South Africa dominating the chase!`;
         }
-        
+
         if (currentBall.isWicket && currentBall.playerOut?.includes('Klaasen')) {
             isTurningPoint = true;
             turningPointText = "KLAASEN DISMISSED! Massive momentum shift to India!";
@@ -124,14 +124,17 @@ export default function LiveImpact() {
 
     // Identify current batters
     const fowsTillNow = activeTeamData.balls.slice(0, ballIndex + 1).filter(b => b.isWicket).map(b => b.playerOut);
-    const battersData = inning === 'IND' 
+    const battersData = inning === 'IND'
         ? ["Rohit Sharma", "Virat Kohli", "Rishabh Pant", "Suryakumar Yadav", "Axar Patel", "Shivam Dube", "Hardik Pandya"]
         : ["Reeza Hendricks", "Quinton de Kock", "Aiden Markram", "Tristan Stubbs", "Heinrich Klaasen", "David Miller", "Marco Jansen"];
-    
+
     // Simplistic current batter logic: Top 2 names not in FOW
     const currentBatters = battersData.filter(name => !fowsTillNow.some(fow => fow && fow.includes(name.split(' ')[0]))).slice(0, 2);
     const striker = currentBatters[0] || "Unknown";
     const nonStriker = currentBatters[1] || "Unknown";
+
+    // Dynamic IM approximation for display
+    const currentIM = Math.min(100, Math.max(0, (currentBall.totalScore / (oversBowled || 1)) * 5 + (fows.length * -2)));
 
     return (
         <div className="min-h-screen pt-20 pb-20 px-4 relative">
@@ -220,7 +223,7 @@ export default function LiveImpact() {
                                 <h3 className="font-display text-lg text-text-primary mb-4 flex items-center justify-between border-b border-border-subtle pb-3">
                                     <span className="flex items-center gap-2"><FiZap className="text-gold" /> Live Scoreboard</span>
                                 </h3>
-                                
+
                                 <div className="mb-4">
                                     <p className="text-[10px] uppercase tracking-widest text-text-muted font-bold mb-2">Batting</p>
                                     <div className="flex items-center justify-between bg-bg-primary p-3 rounded-lg border border-cyan/30 shadow-[0_0_10px_rgba(0,229,255,0.1)] mb-2">
@@ -236,13 +239,13 @@ export default function LiveImpact() {
                                         </div>
                                     </div>
                                 </div>
-                                
+
                                 <div>
                                     <p className="text-[10px] uppercase tracking-widest text-text-muted font-bold mb-2">Bowling</p>
                                     <div className="flex items-center justify-between bg-bg-primary p-3 rounded-lg border border-red/30 shadow-[0_0_10px_rgba(247,100,90,0.1)]">
                                         <div className="flex items-center gap-2">
                                             <span className="text-lg">⚾</span>
-                                            <span className="font-display text-text-primary">{currentBall.bowler || (inning==='IND'?'Rabada':'Bumrah')} *</span>
+                                            <span className="font-display text-text-primary">{currentBall.bowler || (inning === 'IND' ? 'Rabada' : 'Bumrah')} *</span>
                                         </div>
                                     </div>
                                 </div>
@@ -250,7 +253,7 @@ export default function LiveImpact() {
 
                             <AnimatePresence mode="popLayout">
                                 {isTurningPoint ? (
-                                    <motion.div 
+                                    <motion.div
                                         initial={{ opacity: 0, scale: 0.9, y: 20 }}
                                         animate={{ opacity: 1, scale: 1, y: 0 }}
                                         exit={{ opacity: 0, scale: 0.9, y: 20 }}
@@ -262,7 +265,7 @@ export default function LiveImpact() {
                                         <p className="text-red font-medium text-sm leading-relaxed">{turningPointText}</p>
                                     </motion.div>
                                 ) : (
-                                    <motion.div 
+                                    <motion.div
                                         initial={{ opacity: 0 }}
                                         animate={{ opacity: 1 }}
                                         exit={{ opacity: 0 }}
