@@ -1,0 +1,108 @@
+const fs = require('fs');
+
+// We will build a helper that takes target batsman scores, FOWs, bowler stats, 
+// and produces 120 balls that perfectly sum up to the targets.
+
+// Simplified for the hackathon: We will create "Snapshot" data for every 2 overs (10 snapshots per inning)
+// and the UI will just display these snapshots when the user clicks the timeline buttons or auto-plays.
+
+const indInning = {
+    team: 'IND',
+    totalScore: 176,
+    totalWickets: 7,
+    runsAtPhase: [
+        { over: 2, score: 23, wickets: 2, summary: "23-2" },
+        { over: 4, score: 34, wickets: 2, summary: "34-2" }, // Wait, SKY out at 4.3, so at Over 4 he is still in
+        { over: 6, score: 45, wickets: 3, summary: "45-3" }, // Powerplay
+        { over: 8, score: 59, wickets: 3, summary: "59-3" },
+        { over: 10, score: 75, wickets: 3, summary: "75-3" },
+        { over: 12, score: 93, wickets: 3, summary: "93-3" },
+        { over: 14, score: 118, wickets: 4, summary: "118-4" }, // Axar out at 13.3
+        { over: 16, score: 134, wickets: 4, summary: "134-4" },
+        { over: 18, score: 156, wickets: 4, summary: "156-4" },
+        { over: 20, score: 176, wickets: 7, summary: "176-7" }
+    ],
+    fow: [
+        { over: "1.4", score: 23, player: "Rohit Sharma", bowler: "Maharaj" },
+        { over: "1.6", score: 23, player: "Rishabh Pant", bowler: "Maharaj" },
+        { over: "4.3", score: 34, player: "Suryakumar Yadav", bowler: "Rabada" },
+        { over: "13.3", score: 106, player: "Axar Patel", bowler: "de Kock (run out)" },
+        { over: "18.5", score: 163, player: "Virat Kohli", bowler: "Jansen" },
+        { over: "19.4", score: 174, player: "Shivam Dube", bowler: "Nortje" },
+        { over: "19.6", score: 176, player: "Ravindra Jadeja", bowler: "Nortje" }
+    ],
+    batters: [
+        { name: "Rohit", runs: 9, balls: 5, sr: 180 },
+        { name: "Kohli", runs: 76, balls: 59, sr: 128 },
+        { name: "Pant", runs: 0, balls: 2, sr: 0 },
+        { name: "SKY", runs: 3, balls: 4, sr: 75 },
+        { name: "Axar", runs: 47, balls: 31, sr: 151 },
+        { name: "Dube", runs: 27, balls: 16, sr: 168 },
+        { name: "Hardik", runs: 5, balls: 2, sr: 250 },
+        { name: "Jadeja", runs: 2, balls: 2, sr: 100 }
+    ],
+    bowlers: [
+        { name: "Jansen", o: 4, r: 49, w: 1 },
+        { name: "Maharaj", o: 3, r: 23, w: 2 },
+        { name: "Rabada", o: 4, r: 36, w: 1 },
+        { name: "Markram", o: 2, r: 16, w: 0 },
+        { name: "Nortje", o: 4, r: 26, w: 2 },
+        { name: "Shamsi", o: 3, r: 26, w: 0 }
+    ]
+};
+
+const saInning = {
+    team: 'RSA',
+    totalScore: 169,
+    totalWickets: 8,
+    runsAtPhase: [
+        { over: 2, score: 10, wickets: 1, summary: "10-1" }, // Reeza out 1.3
+        { over: 4, score: 22, wickets: 2, summary: "22-2" }, // Markram out 2.3
+        { over: 6, score: 42, wickets: 2, summary: "42-2" }, // Powerplay
+        { over: 8, score: 62, wickets: 2, summary: "62-2" },
+        { over: 10, score: 81, wickets: 3, summary: "81-3" }, // Stubbs out 8.5
+        { over: 12, score: 101, wickets: 3, summary: "101-3" },
+        { over: 14, score: 123, wickets: 4, summary: "123-4" }, // QdK out 12.3
+        { over: 16, score: 147, wickets: 4, summary: "147-4" },
+        { over: 18, score: 158, wickets: 6, summary: "158-6" }, // Klaasen 16.1, Jansen 17.4
+        { over: 20, score: 169, wickets: 8, summary: "169-8" } // Miller 19.1, Rabada 19.5
+    ],
+    fow: [
+        { over: "1.3", score: 7, player: "Reeza Hendricks", bowler: "Bumrah" },
+        { over: "2.3", score: 12, player: "Aiden Markram", bowler: "Arshdeep" },
+        { over: "8.5", score: 70, player: "Tristan Stubbs", bowler: "Axar" },
+        { over: "12.3", score: 106, player: "Quinton de Kock", bowler: "Arshdeep" },
+        { over: "16.1", score: 151, player: "Heinrich Klaasen", bowler: "Hardik" },
+        { over: "17.4", score: 156, player: "Marco Jansen", bowler: "Bumrah" },
+        { over: "19.1", score: 161, player: "David Miller", bowler: "Hardik" },
+        { over: "19.5", score: 168, player: "Kagiso Rabada", bowler: "Hardik" }
+    ],
+    batters: [
+        { name: "Reeza", runs: 4, balls: 5, sr: 80 },
+        { name: "de Kock", runs: 39, balls: 31, sr: 125 },
+        { name: "Markram", runs: 4, balls: 5, sr: 80 },
+        { name: "Stubbs", runs: 31, balls: 21, sr: 147 },
+        { name: "Klaasen", runs: 52, balls: 27, sr: 192 },
+        { name: "Miller", runs: 21, balls: 17, sr: 123 },
+        { name: "Jansen", runs: 2, balls: 4, sr: 50 },
+        { name: "Maharaj", runs: 2, balls: 7, sr: 28 },
+        { name: "Rabada", runs: 4, balls: 3, sr: 133 },
+        { name: "Nortje", runs: 1, balls: 1, sr: 100 }
+    ],
+    bowlers: [
+        { name: "Arshdeep", o: 4, r: 20, w: 2 },
+        { name: "Bumrah", o: 4, r: 18, w: 2 },
+        { name: "Axar", o: 4, r: 49, w: 1 },
+        { name: "Kuldeep", o: 4, r: 45, w: 0 },
+        { name: "Hardik", o: 3, r: 20, w: 3 },
+        { name: "Jadeja", o: 1, r: 12, w: 0 }
+    ]
+};
+
+const output = {
+    IND: indInning,
+    RSA: saInning
+};
+
+fs.writeFileSync('./src/data/wc_final_2024.json', JSON.stringify(output, null, 2));
+console.log('Created wc_final_2024.json');
