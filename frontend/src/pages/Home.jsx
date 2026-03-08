@@ -4,10 +4,12 @@ import { motion } from 'framer-motion';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import PlayerCard from '../components/PlayerCard';
+import LiveMatchCard from '../components/LiveMatchCard';
+import MatchCard from '../components/MatchCard';
 import { useCountUp } from '../hooks/useIMScore';
-import { getLeaderboard, playersData, inningsData } from '../data/staticData';
+import { getLeaderboard, playersData, inningsData, matchesData, predictionsData } from '../data/staticData';
 import { HiOutlineBolt } from 'react-icons/hi2';
-import { FiUsers, FiBarChart2, FiTarget, FiArrowRight } from 'react-icons/fi';
+import { FiUsers, FiBarChart2, FiTarget, FiArrowRight, FiTrendingUp } from 'react-icons/fi';
 import { MdSportsCricket } from 'react-icons/md';
 import { LuSwords, LuRadio, LuBookOpen } from 'react-icons/lu';
 
@@ -129,15 +131,20 @@ export default function Home() {
                     <p className="text-text-secondary text-sm mb-8 ml-5">Players ranked by our proprietary Impact Metric</p>
                 </motion.div>
 
-                {loading ? (
+                {/* Live Match + Top Players Grid */}
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-8">
+                    <LiveMatchCard />
+                    {(loading ? [1,2,3] : players.slice(0, 3)).map((p, i) =>
+                        loading ? <div key={i} className="skeleton h-44 rounded-2xl" /> :
+                        <motion.div key={p.id} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.08 }}>
+                            <PlayerCard player={p} />
+                        </motion.div>
+                    )}
+                </div>
+
+                {!loading && (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                        {[1, 2, 3, 4].map(i => (
-                            <div key={i} className="skeleton h-44 rounded-2xl" />
-                        ))}
-                    </div>
-                ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                        {players.map((p, i) => (
+                        {players.slice(3, 10).map((p, i) => (
                             <motion.div
                                 key={p.id}
                                 initial={{ opacity: 0, y: 20 }}
@@ -150,6 +157,81 @@ export default function Home() {
                         ))}
                     </div>
                 )}
+            </section>
+
+            {/* Upcoming Predictions Preview */}
+            <section className="max-w-7xl mx-auto px-4 pb-16">
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                >
+                    <div className="flex items-center justify-between mb-6">
+                        <div className="flex items-center gap-3">
+                            <div className="w-1 h-8 bg-gold rounded-full" />
+                            <h2 className="font-display text-3xl lg:text-4xl text-text-primary">Upcoming Predictions</h2>
+                        </div>
+                        <button onClick={() => navigate('/predictions')} className="text-cyan text-sm font-medium flex items-center gap-1 hover:gap-2 transition-all">
+                            View All <FiArrowRight />
+                        </button>
+                    </div>
+                </motion.div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {predictionsData.map((pred, i) => (
+                        <motion.div
+                            key={pred.match_num}
+                            initial={{ opacity: 0, y: 20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ delay: i * 0.1 }}
+                            onClick={() => navigate('/predictions')}
+                            className="group bg-bg-card border border-border-subtle rounded-2xl p-5 cursor-pointer hover:border-gold/40 hover:shadow-lg hover:shadow-gold/5 transition-all"
+                        >
+                            <div className="flex items-center justify-between mb-3">
+                                <span className="text-[10px] text-text-muted uppercase tracking-widest font-bold">Match #{pred.match_num}</span>
+                                <span className="text-[10px] text-text-muted">{pred.date}</span>
+                            </div>
+                            <div className="flex items-center justify-between mb-4">
+                                <span className="font-display text-2xl text-text-primary">{pred.team1_short}</span>
+                                <span className="text-text-muted text-sm">vs</span>
+                                <span className="font-display text-2xl text-text-primary">{pred.team2_short}</span>
+                            </div>
+                            <div className="h-2.5 bg-bg-primary rounded-full overflow-hidden flex mb-3">
+                                <div style={{ width: `${pred.team1_win_prob}%` }} className="h-full bg-cyan rounded-l-full" />
+                                <div style={{ width: `${pred.team2_win_prob}%` }} className="h-full bg-amber rounded-r-full" />
+                            </div>
+                            <div className="flex items-center justify-between text-xs">
+                                <span className="text-cyan font-bold">{pred.team1_win_prob}%</span>
+                                <span className="text-gold flex items-center gap-1"><FiTrendingUp /> {pred.predicted_winner_short}</span>
+                                <span className="text-amber font-bold">{pred.team2_win_prob}%</span>
+                            </div>
+                        </motion.div>
+                    ))}
+                </div>
+            </section>
+
+            {/* Recent Matches */}
+            <section className="max-w-7xl mx-auto px-4 pb-16">
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                >
+                    <div className="flex items-center justify-between mb-6">
+                        <div className="flex items-center gap-3">
+                            <div className="w-1 h-8 bg-cyan rounded-full" />
+                            <h2 className="font-display text-3xl lg:text-4xl text-text-primary">Recent Matches</h2>
+                        </div>
+                        <button onClick={() => navigate('/matches')} className="text-cyan text-sm font-medium flex items-center gap-1 hover:gap-2 transition-all">
+                            All Matches <FiArrowRight />
+                        </button>
+                    </div>
+                </motion.div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {matchesData.slice(0, 6).map((m, i) => (
+                        <MatchCard key={m.match_id} match={m} index={i} />
+                    ))}
+                </div>
             </section>
 
             {/* CTA Section */}
@@ -166,11 +248,14 @@ export default function Home() {
                         <button onClick={() => navigate('/compare')} className="px-6 py-3 bg-bg-card border border-border-accent rounded-xl text-text-primary text-sm font-medium hover:border-cyan/50 transition-all flex items-center gap-2">
                             <LuSwords className="text-cyan" /> Compare Players
                         </button>
+                        <button onClick={() => navigate('/matches')} className="px-6 py-3 bg-bg-card border border-border-accent rounded-xl text-text-primary text-sm font-medium hover:border-cyan/50 transition-all flex items-center gap-2">
+                            <MdSportsCricket className="text-green" /> Past Matches
+                        </button>
+                        <button onClick={() => navigate('/predictions')} className="px-6 py-3 bg-bg-card border border-border-accent rounded-xl text-text-primary text-sm font-medium hover:border-gold/50 transition-all flex items-center gap-2">
+                            <FiTarget className="text-gold" /> Predictions
+                        </button>
                         <button onClick={() => navigate('/live')} className="px-6 py-3 bg-bg-card border border-border-accent rounded-xl text-text-primary text-sm font-medium hover:border-cyan/50 transition-all flex items-center gap-2">
                             <LuRadio className="text-red" /> Live Impact
-                        </button>
-                        <button onClick={() => navigate('/methodology')} className="px-6 py-3 bg-bg-card border border-border-accent rounded-xl text-text-primary text-sm font-medium hover:border-cyan/50 transition-all flex items-center gap-2">
-                            <LuBookOpen className="text-violet" /> Methodology
                         </button>
                     </div>
                 </motion.div>

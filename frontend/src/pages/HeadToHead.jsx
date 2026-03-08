@@ -40,8 +40,8 @@ function deriveStat(player, innings, key) {
 
 export default function HeadToHead() {
     const [players, setPlayers] = useState([]);
-    const [p1Id, setP1Id] = useState('virat-kohli');
-    const [p2Id, setP2Id] = useState('rohit-sharma');
+    const [p1Id, setP1Id] = useState('v-kohli');
+    const [p2Id, setP2Id] = useState('rg-sharma');
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(false);
 

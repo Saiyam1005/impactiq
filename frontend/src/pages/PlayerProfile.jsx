@@ -93,9 +93,9 @@ export default function PlayerProfile() {
     const scoreColor = getScoreColor(player.im_score);
 
     // Radar data
-    const playerRadar = player.id === 'virat-kohli'
+    const playerRadar = player.id === 'v-kohli'
         ? [84, 80, 88, 79, 76, 83]
-        : player.id === 'jasprit-bumrah'
+        : player.id === 'jj-bumrah'
             ? [86, 85, 82, 80, 78, 84]
             : [Math.min(95, player.im_score + 10), player.im_score, Math.min(95, player.im_score + 5),
             Math.max(30, player.im_score - 5), Math.max(30, player.im_score - 2), player.im_score + 3];

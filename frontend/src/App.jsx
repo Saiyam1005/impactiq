@@ -7,6 +7,9 @@ import Leaderboard from './pages/Leaderboard';
 import HeadToHead from './pages/HeadToHead';
 import Methodology from './pages/Methodology';
 import LiveImpact from './pages/LiveImpact';
+import Matches from './pages/Matches';
+import MatchDetail from './pages/MatchDetail';
+import Predictions from './pages/Predictions';
 
 export default function App() {
     return (
@@ -20,6 +23,9 @@ export default function App() {
                     <Route path="/compare" element={<HeadToHead />} />
                     <Route path="/methodology" element={<Methodology />} />
                     <Route path="/live" element={<LiveImpact />} />
+                    <Route path="/matches" element={<Matches />} />
+                    <Route path="/matches/:matchId" element={<MatchDetail />} />
+                    <Route path="/predictions" element={<Predictions />} />
                 </Routes>
                 <Toaster position="bottom-right" />
             </div>

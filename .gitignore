@@ -1,0 +1,25 @@
+# Dependencies
+frontend/node_modules/
+backend/__pycache__/
+
+# Build output
+frontend/dist/
+
+# Vite cache
+frontend/.vite/
+
+# Raw IPL dataset (41MB+ — regenerate processed data with process_matches.py)
+ipl_male_csv2/
+
+# Environment
+.env
+*.pyc
+__pycache__/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+*.swp

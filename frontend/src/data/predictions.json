@@ -1,0 +1,125 @@
+[
+  {
+    "match_num": 1,
+    "team1": "Sunrisers Hyderabad",
+    "team1_short": "SRH",
+    "team2": "Delhi Capitals",
+    "team2_short": "DC",
+    "venue": "M Chinnaswamy Stadium, Bengaluru",
+    "date": "2025-06-15",
+    "team1_win_prob": 50.4,
+    "team2_win_prob": 49.6,
+    "predicted_winner": "Sunrisers Hyderabad",
+    "predicted_winner_short": "SRH",
+    "team1_form": 60.0,
+    "team2_form": 45.0,
+    "team1_avg_score": 150.2,
+    "team2_avg_score": 173.3,
+    "h2h_total": 12,
+    "h2h_team1_wins": 5,
+    "h2h_team2_wins": 7,
+    "key_players_team1": [
+      {
+        "name": "KMA Paul",
+        "form": 77.5
+      },
+      {
+        "name": "CH Morris",
+        "form": 71.5
+      }
+    ],
+    "key_players_team2": [
+      {
+        "name": "LH Ferguson",
+        "form": 75.5
+      },
+      {
+        "name": "MJ Santner",
+        "form": 69.0
+      }
+    ],
+    "insight": "This is a closely matched contest. SRH and DC have similar recent form, making this a 50-50 battle. Both teams' middle-order depth will be the deciding factor."
+  },
+  {
+    "match_num": 2,
+    "team1": "Gujarat Titans",
+    "team1_short": "GT",
+    "team2": "Lucknow Super Giants",
+    "team2_short": "LSG",
+    "venue": "Wankhede Stadium, Mumbai",
+    "date": "2025-06-17",
+    "team1_win_prob": 54.3,
+    "team2_win_prob": 45.7,
+    "predicted_winner": "Gujarat Titans",
+    "predicted_winner_short": "GT",
+    "team1_form": 55.0,
+    "team2_form": 40.0,
+    "team1_avg_score": 191.8,
+    "team2_avg_score": 188.9,
+    "h2h_total": 7,
+    "h2h_team1_wins": 4,
+    "h2h_team2_wins": 3,
+    "key_players_team1": [
+      {
+        "name": "Umran Malik",
+        "form": 60.5
+      },
+      {
+        "name": "Akash Madhwal",
+        "form": 55.0
+      }
+    ],
+    "key_players_team2": [
+      {
+        "name": "Arshdeep Singh",
+        "form": 76.0
+      },
+      {
+        "name": "JR Hazlewood",
+        "form": 63.0
+      }
+    ],
+    "insight": "This is a closely matched contest. GT and LSG have similar recent form, making this a 50-50 battle. Both teams' middle-order depth will be the deciding factor."
+  },
+  {
+    "match_num": 3,
+    "team1": "Kolkata Knight Riders",
+    "team1_short": "KKR",
+    "team2": "Punjab Kings",
+    "team2_short": "PBKS",
+    "venue": "MA Chidambaram Stadium, Chennai",
+    "date": "2025-06-19",
+    "team1_win_prob": 46.8,
+    "team2_win_prob": 53.2,
+    "predicted_winner": "Punjab Kings",
+    "predicted_winner_short": "PBKS",
+    "team1_form": 50.0,
+    "team2_form": 55.0,
+    "team1_avg_score": 156.2,
+    "team2_avg_score": 181.1,
+    "h2h_total": 7,
+    "h2h_team1_wins": 3,
+    "h2h_team2_wins": 4,
+    "key_players_team1": [
+      {
+        "name": "KA Pollard",
+        "form": 68.0
+      },
+      {
+        "name": "Noor Ahmad",
+        "form": 68.0
+      }
+    ],
+    "key_players_team2": [
+      {
+        "name": "R Sai Kishore",
+        "form": 79.5
+      },
+      {
+        "name": "MP Stoinis",
+        "form": 60.2
+      }
+    ],
+    "insight": "This is a closely matched contest. KKR and PBKS have similar recent form, making this a 50-50 battle. Both teams' middle-order depth will be the deciding factor."
+  }
+]

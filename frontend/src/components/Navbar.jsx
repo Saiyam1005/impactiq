@@ -7,6 +7,8 @@ import { FiSearch, FiMenu, FiX } from 'react-icons/fi';
 const navLinks = [
     { to: '/', label: 'Home' },
     { to: '/leaderboard', label: 'Leaderboard' },
+    { to: '/matches', label: 'Matches' },
+    { to: '/predictions', label: 'Predictions' },
     { to: '/compare', label: 'Compare' },
     { to: '/live', label: 'Live Impact' },
     { to: '/methodology', label: 'Methodology' },

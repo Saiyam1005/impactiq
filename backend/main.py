@@ -10,7 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from calculator import calculate_im_from_inputs
 from models import IMCalculationRequest
 
-app = FastAPI(title="ImpactIQ API", version="1.0.0")
+app = FastAPI(title="ImpactIQ API", version="2.0.0")
 
 # CORS
 app.add_middleware(
@@ -29,6 +29,14 @@ with open(os.path.join(DATA_DIR, "players.json"), "r", encoding="utf-8") as f:
 
 with open(os.path.join(DATA_DIR, "innings.json"), "r", encoding="utf-8") as f:
     INNINGS = json.load(f)
+
+with open(os.path.join(DATA_DIR, "matches.json"), "r", encoding="utf-8") as f:
+    MATCHES = json.load(f)
+
+with open(os.path.join(DATA_DIR, "predictions.json"), "r", encoding="utf-8") as f:
+    PREDICTIONS = json.load(f)
+
+MATCHES_MAP = {m["match_id"]: m for m in MATCHES}
 
 # Index for quick lookup
 PLAYERS_MAP = {p["id"]: p for p in PLAYERS}
@@ -118,3 +126,45 @@ def calculate_im(req: IMCalculationRequest):
         role=req.role,
     )
     return result
+
+
+# ── Match endpoints ──────────────────────────────────────────────────
+
+@app.get("/api/matches")
+def get_matches(
+    season: Optional[str] = Query(None),
+    team: Optional[str] = Query(None),
+    limit: int = Query(50, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+):
+    """Get past matches with optional filters."""
+    result = MATCHES[:]
+    if season:
+        result = [m for m in result if m["season"] == season]
+    if team:
+        t = team.upper()
+        result = [m for m in result if t in (m["team1_short"], m["team2_short"])]
+    total = len(result)
+    return {"total": total, "matches": result[offset:offset + limit]}
+
+
+@app.get("/api/matches/{match_id}")
+def get_match(match_id: str):
+    """Get full match detail with scorecard, impact, turning points."""
+    m = MATCHES_MAP.get(match_id)
+    if not m:
+        raise HTTPException(status_code=404, detail="Match not found")
+    return m
+
+
+@app.get("/api/seasons")
+def get_seasons():
+    """Get all available seasons."""
+    seasons = sorted(set(m["season"] for m in MATCHES), reverse=True)
+    return seasons
+
+
+@app.get("/api/predictions")
+def get_predictions():
+    """Get 3 upcoming match predictions."""
+    return PREDICTIONS
