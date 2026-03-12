@@ -4,8 +4,8 @@ import { motion } from 'framer-motion';
 import { FiArrowLeft, FiMapPin, FiCalendar, FiAward, FiActivity, FiTrendingUp } from 'react-icons/fi';
 import { HiOutlineBolt } from 'react-icons/hi2';
 import { LuSwords } from 'react-icons/lu';
-import axios from 'axios';
 
+const BASE = import.meta.env.BASE_URL || '/';
 const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } };
 const stagger = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.08 } } };
 
@@ -134,8 +134,9 @@ export default function MatchDetail() {
 
     useEffect(() => {
         setLoading(true);
-        axios.get(`/api/matches/${matchId}`)
-            .then(res => setMatch(res.data))
+        fetch(`${BASE}data/matches/${matchId}.json`)
+            .then(res => { if (!res.ok) throw new Error('not found'); return res.json(); })
+            .then(data => setMatch(data))
             .catch(() => setMatch(null))
             .finally(() => setLoading(false));
     }, [matchId]);

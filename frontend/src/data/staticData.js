@@ -1,12 +1,9 @@
-import playersRaw from './players.json?raw';
-import inningsRaw from './innings.json?raw';
-import matchesRaw from './matches.json?raw';
-import predictionsRaw from './predictions.json?raw';
+import playersData from './players.json';
+import inningsData from './innings.json';
+import matchesData from './matches.json';
+import predictionsData from './predictions.json';
 
-export const playersData = JSON.parse(playersRaw);
-export const inningsData = JSON.parse(inningsRaw);
-export const matchesData = JSON.parse(matchesRaw);
-export const predictionsData = JSON.parse(predictionsRaw);
+export { playersData, inningsData, matchesData, predictionsData };
 
 // Helper: get players sorted by IM score (leaderboard)
 export function getLeaderboard() {

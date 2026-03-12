@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { playersData, inningsData, getLeaderboard, getPlayerById, getPlayerInnings } from '../data/staticData';
 
 export function usePlayerData(playerId) {
     const [player, setPlayer] = useState(null);
@@ -11,7 +12,11 @@ export function usePlayerData(playerId) {
         setLoading(true);
         axios.get(`/api/players/${playerId}`)
             .then(res => { setPlayer(res.data); setError(null); })
-            .catch(err => setError(err.message))
+            .catch(() => {
+                const p = getPlayerById(playerId);
+                if (p) { setPlayer(p); setError(null); }
+                else setError('Player not found');
+            })
             .finally(() => setLoading(false));
     }, [playerId]);
 
@@ -26,7 +31,7 @@ export function usePlayersList() {
     useEffect(() => {
         axios.get('/api/players')
             .then(res => { setPlayers(res.data); setError(null); })
-            .catch(err => setError(err.message))
+            .catch(() => { setPlayers(playersData); setError(null); })
             .finally(() => setLoading(false));
     }, []);
 
@@ -42,7 +47,12 @@ export function useLeaderboard(role) {
         const params = role && role !== 'ALL' ? `?role=${role}` : '';
         axios.get(`/api/leaderboard${params}`)
             .then(res => { setPlayers(res.data); setError(null); })
-            .catch(err => setError(err.message))
+            .catch(() => {
+                let result = getLeaderboard();
+                if (role && role !== 'ALL') result = result.filter(p => p.role === role);
+                setPlayers(result);
+                setError(null);
+            })
             .finally(() => setLoading(false));
     }, [role]);
 
